@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistema de Contabilidad - Menú Colorido</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap">
+  
+</head>
+<body>
+  <div class="side_bar">
+    <div class="title">
+      <div class="logo">Sistema de Contabilidad</div>
+    </div>
+    <div class="menu">
+      <ul>
+        <li><a href="#" class="ripple"><i class="fas fa-file-invoice-dollar"></i>1. Balance de Apertura</a></li>
+        <li><a href="#" class="ripple"><i class="fas fa-book-journal-whills"></i>2. Libro Diario</a></li>
+        <li><a href="#" class="ripple"><i class="fas fa-calculator"></i>3. Cálculos Auxiliares Compras</a></li>
+        <li><a href="#" class="ripple"><i class="fas fa-calculator"></i>4. Cálculos Auxiliares Ventas</a></li>
+        <li><a href="#" class="ripple"><i class="fas fa-calculator"></i>5. Otros Cálculos Auxiliares</a></li>
+        <li><a href="#" class="ripple"><i class="fas fa-file-invoice"></i>6. Liquidación Impuestos LM</a></li>
+        <li><a href="#" class="ripple"><i class="fas fa-boxes-stacked"></i>7. Kardex</a></li>
+        <li><a href="#" class="ripple"><i class="fas fa-book"></i>8. Libro Mayor</a></li>
+        <li><a href="#" class="ripple"><i class="fas fa-balance-scale"></i>9. BCSS</a></li>
+        <li><a href="#" class="ripple"><i class="fas fa-building-columns"></i>10. Act. Fijos</a></li>
+        <li><a href="#" class="ripple"><i class="fas fa-landmark"></i>11. Act. Patrimonio</a></li>
+        <li><a href="#" class="ripple"><i class="fas fa-sliders"></i>12. Ajustes</a></li>
+        <li><a href="#" class="ripple"><i class="fas fa-table"></i>13. Hoja de 10 Columnas</a></li>
+        <li><a href="#" class="ripple"><i class="fas fa-chart-line"></i>14. ER</a></li>
+        <li><a href="#" class="ripple"><i class="fas fa-chart-pie"></i>15. BG</a></li>
+        <li><a href="#" class="ripple"><i class="fas fa-power-off"></i>Cerrar</a></li>
+      </ul>
+    </div>
+    <div class="footer">
+      <p>Versión 1.0.0</p>
+    </div>
+  </div>
+
+  <script>
+    // Efecto ripple para los botones
+    document.querySelectorAll('.ripple').forEach(button => {
+      button.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        const x = e.clientX - e.target.getBoundingClientRect().left;
+        const y = e.clientY - e.target.getBoundingClientRect().top;
+        
+        const ripple = document.createElement('span');
+        ripple.classList.add('ripple-effect');
+        ripple.style.left = `${x}px`;
+        ripple.style.top = `${y}px`;
+        
+        this.appendChild(ripple);
+        
+        setTimeout(() => {
+          ripple.remove();
+        }, 600);
+      });
+    });
+
+    // Marcar elemento activo
+    document.querySelectorAll('.menu a').forEach(link => {
+      link.addEventListener('click', function() {
+        document.querySelectorAll('.menu a').forEach(item => {
+          item.classList.remove('active');
+        });
+        this.classList.add('active');
+      });
+    });
+
+    // Para versión móvil (opcional)
+    function toggleSidebar() {
+      document.querySelector('.side_bar').classList.toggle('active');
+    }
+  </script>
+</body>
+</html>

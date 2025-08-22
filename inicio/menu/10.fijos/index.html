@@ -1,0 +1,1275 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Contabilidad - Detalle de Activos Fijos</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #1a73e8;
+            --secondary-color: #34a853;
+            --text-color: #2c3e50;
+            --light-bg: #f8f9fa;
+            --menu-hover: #f5f7fa;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            --table-header-bg: #e3f2fd;
+            --table-row-alt: #f9fafb;
+            --bcss-accent: #e0f7fa;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        body {
+            background: var(--light-bg);
+            min-height: 100vh;
+            margin-left: 300px;
+            padding: 20px;
+            transition: margin-left var(--transition);
+        }
+
+        .side_bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 300px;
+            height: 100vh;
+            background: white;
+            padding: 20px 0;
+            box-shadow: var(--shadow);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            transition: transform var(--transition);
+        }
+
+        .side_bar .title {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            margin-bottom: 10px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .side_bar .title .logo {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--primary-color);
+            letter-spacing: 0.5px;
+            text-align: center;
+        }
+
+        .side_bar .menu {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0 15px;
+        }
+
+        .side_bar .menu::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .side_bar .menu::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 4px;
+        }
+
+        .side_bar .menu::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .side_bar ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .side_bar ul li {
+            margin: 5px 0;
+            position: relative;
+        }
+
+        .side_bar ul a {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--text-color);
+            text-decoration: none;
+            border-radius: 8px;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .side_bar ul a:hover {
+            background-color: var(--menu-hover);
+            color: var(--primary-color);
+            transform: translateX(5px);
+        }
+
+        .side_bar ul a.active {
+            background: linear-gradient(90deg, var(--primary-color), #60a5fa);
+            color: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .side_bar ul a.active i {
+            color: white;
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .side_bar ul i {
+            margin-right: 12px;
+            font-size: 16px;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            transition: var(--transition);
+        }
+
+        .side_bar ul li:nth-child(1) i { background-color: #4CAF50; color: white; }
+        .side_bar ul li:nth-child(2) i { background-color: #2196F3; color: white; }
+        .side_bar ul li:nth-child(3) i { background-color: #FF9800; color: white; }
+        .side_bar ul li:nth-child(4) i { background-color: #9C27B0; color: white; }
+        .side_bar ul li:nth-child(5) i { background-color: #607D8B; color: white; }
+        .side_bar ul li:nth-child(6) i { background-color: #F44336; color: white; }
+        .side_bar ul li:nth-child(7) i { background-color: #795548; color: white; }
+        .side_bar ul li:nth-child(8) i { background-color: #00BCD4; color: white; }
+        .side_bar ul li:nth-child(9) i { background-color: #8BC34A; color: white; }
+        .side_bar ul li:nth-child(10) i { background-color: #3F51B5; color: white; }
+        .side_bar ul li:nth-child(11) i { background-color: #009688; color: white; }
+        .side_bar ul li:nth-child(12) i { background-color: #E91E63; color: white; }
+        .side_bar ul li:nth-child(13) i { background-color: #CDDC39; color: #333; }
+        .side_bar ul li:nth-child(14) i { background-color: #FF5722; color: white; }
+        .side_bar ul li:nth-child(15) i { background-color: #673AB7; color: white; }
+        .side_bar ul li:nth-child(16) i { background-color: #333; color: white; }
+
+        .side_bar .footer {
+            padding: 15px;
+            text-align: center;
+            margin-top: auto;
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+            font-size: 0.85rem;
+            color: var(--text-color);
+        }
+
+        .ripple-effect {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.4);
+            transform: scale(0);
+            animation: ripple 0.6s linear;
+            pointer-events: none;
+        }
+
+        @keyframes ripple {
+            to {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+
+        .menu-toggle {
+            display: none;
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            z-index: 1100;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 20px;
+            cursor: pointer;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+
+        .menu-toggle:hover {
+            background: #1557b0;
+        }
+
+        @media (max-width: 992px) {
+            body {
+                margin-left: 0;
+            }
+
+            .side_bar {
+                transform: translateX(-100%);
+                width: 250px;
+            }
+
+            .side_bar.active {
+                transform: translateX(0);
+            }
+
+            body.menu-active {
+                margin-left: 250px;
+            }
+
+            .menu-toggle {
+                display: block;
+            }
+
+            .assets-table, .ufv-table {
+                font-size: 0.75rem;
+            }
+
+            .assets-table th, .assets-table td, .ufv-table th, .ufv-table td {
+                padding: 8px;
+            }
+        }
+
+        @media print {
+            @page {
+                size: A4 landscape;
+                margin: 10mm;
+            }
+
+            body {
+                margin: 0;
+                background: white;
+                font-size: 7pt;
+                padding: 0;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            .side_bar, .action-buttons, .no-print, .header, .menu-toggle {
+                display: none !important;
+            }
+
+            #print-header {
+                display: block;
+                text-align: center;
+                margin-bottom: 5mm;
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                padding: 5mm 10mm 0;
+                font-size: 9pt;
+            }
+
+            #print-header h4 {
+                font-size: 11pt;
+                font-weight: bold;
+                margin-bottom: 2mm;
+            }
+
+            #print-header p {
+                margin: 1mm 0;
+                font-size: 7pt;
+            }
+
+            #print-header .print-document-title {
+                font-size: 9pt;
+                font-weight: bold;
+                text-transform: uppercase;
+                margin: 3mm 0;
+                border-top: 0.5pt solid #000;
+                border-bottom: 0.5pt solid #000;
+                padding: 2mm 0;
+            }
+
+            .main-content, .assets-container {
+                padding: 0;
+                margin: 0;
+                max-width: 100%;
+                width: 100%;
+                box-shadow: none;
+                border-radius: 0;
+            }
+
+            .assets-table, .ufv-table {
+                width: 100% !important;
+                font-size: 6.5pt;
+                border: 0.5pt solid #000;
+                border-collapse: collapse;
+                margin-bottom: 3mm;
+            }
+
+            .assets-table th, .assets-table td, .ufv-table th, .ufv-table td {
+                border: 0.5pt solid #000;
+                padding: 2mm !important;
+                vertical-align: middle;
+            }
+
+            .assets-table th, .ufv-table th {
+                background-color: #e0e0e0 !important;
+                font-weight: bold;
+                text-align: center;
+                color: #000;
+            }
+
+            .assets-table td:first-child, .ufv-table td:first-child {
+                text-align: left;
+            }
+
+            .assets-table input, .ufv-table input {
+                border: none;
+                background: transparent;
+                padding: 0;
+                text-align: right;
+                outline: none;
+                font-size: 6.5pt;
+            }
+
+            .assets-table .total-row, .ufv-table .total-row {
+                background-color: #f0f0f0 !important;
+                font-weight: bold;
+            }
+        }
+
+        .main-content {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            margin-bottom: 30px;
+        }
+
+        .company-info h4 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--text-color);
+            margin-bottom: 8px;
+        }
+
+        .company-info p {
+            font-size: 0.9rem;
+            color: var(--text-color);
+            margin: 4px 0;
+        }
+
+        .document-title {
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin: 20px 0;
+            color: var(--text-color);
+            text-transform: uppercase;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 8px;
+        }
+
+        .action-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+        .action-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    margin-bottom: 20px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--light-bg);
+    padding: 10px;
+}
+        .btn-action {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            border-radius: 6px;
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: var(--transition);
+        }
+
+        .btn-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .assets-container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            padding: 20px;
+            overflow-x: auto;
+        }
+
+        .assets-table, .ufv-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            font-size: 0.9rem;
+            margin-bottom: 30px;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .assets-table th, .ufv-table th {
+            background-color: var(--table-header-bg);
+            text-align: center;
+            padding: 12px 10px;
+            border-bottom: 2px solid #bbdefb;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--text-color);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            white-space: nowrap;
+        }
+
+        .assets-table td, .ufv-table td {
+            padding: 12px 10px;
+            border-bottom: 1px solid #eceff1;
+            vertical-align: middle;
+            text-align: right;
+            transition: background-color 0.2s;
+        }
+
+        .assets-table tr:nth-child(even), .ufv-table tr:nth-child(even) {
+            background-color: var(--table-row-alt);
+        }
+
+        .assets-table tr:hover, .ufv-table tr:hover {
+            background-color: #f1f8ff;
+        }
+
+        .assets-table td:first-child, .ufv-table td:first-child {
+            text-align: left;
+            max-width: 300px;
+            white-space: normal;
+            word-wrap: break-word;
+        }
+
+        .assets-table .total-row td, .ufv-table .total-row td {
+            font-weight: bold;
+            background-color: #e3f2fd;
+            border-top: 2px dashed #bbdefb;
+            padding: 12px 10px;
+        }
+
+        .assets-table input, .ufv-table input {
+            width: 100%;
+            padding: 6px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            text-align: right;
+            transition: border-color 0.2s;
+        }
+
+        .assets-table input:focus, .ufv-table input:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.2);
+        }
+
+        .assets-table .editable:hover, .ufv-table .editable:hover {
+            background-color: #e8f0fe;
+            outline: 1px dashed var(--primary-color);
+            cursor: text;
+        }
+
+        .assets-table .no-print button, .ufv-table .no-print button {
+            padding: 6px;
+            font-size: 0.8rem;
+        }
+
+        .assets-table .no-print button:hover, .ufv-table .no-print button:hover {
+            transform: scale(1.1);
+        }
+
+        .assets-table .porcentaje input {
+            text-align: center;
+            width: 60px;
+        }
+
+        .ufv-table {
+            margin-top: 20px;
+        }
+
+        /* Ajustar el ancho de columnas específicas */
+        .assets-table th:nth-child(1), .assets-table td:nth-child(1) { min-width: 300px; } /* DETALLE */
+        .assets-table th:nth-child(2), .assets-table td:nth-child(2) { min-width: 60px; } /* CANT. */
+        .assets-table th:nth-child(3), .assets-table td:nth-child(3) { min-width: 120px; } /* COSTO UNITARIO */
+        .assets-table th:nth-child(4), .assets-table td:nth-child(4) { min-width: 120px; } /* FECHA ADQUISICIÓN */
+        .assets-table th:nth-child(5), .assets-table td:nth-child(5) { min-width: 80px; } /* % */
+        .assets-table th:nth-child(6), .assets-table td:nth-child(6) { min-width: 100px; } /* VIDA ÚTIL */
+        .assets-table th:nth-child(7), .assets-table td:nth-child(7) { min-width: 120px; } /* VALOR EN LIBROS */
+        .assets-table th:nth-child(8), .assets-table td:nth-child(8) { min-width: 80px; } /* FACTOR */
+        .assets-table th:nth-child(9), .assets-table td:nth-child(9) { min-width: 120px; } /* ACTUALIZACIÓN */
+        .assets-table th:nth-child(10), .assets-table td:nth-child(10) { min-width: 120px; } /* VALOR ACTUALIZADO */
+        .assets-table th:nth-child(11), .assets-table td:nth-child(11) { min-width: 120px; } /* DEPRECIACIÓN */
+        .assets-table th:nth-child(12), .assets-table td:nth-child(12) { min-width: 80px; } /* ACCIONES */
+        .ufv-table th:nth-child(1), .ufv-table td:nth-child(1) { min-width: 200px; } /* CIUDAD Y FECHA FINAL */
+        .ufv-table th:nth-child(2), .ufv-table td:nth-child(2) { min-width: 100px; } /* UFV FINAL */
+        .ufv-table th:nth-child(3), .ufv-table td:nth-child(3) { min-width: 100px; } /* FACTOR */
+        .ufv-table th:nth-child(4), .ufv-table td:nth-child(4) { min-width: 100px; } /* UFV INICIAL */
+        .ufv-table th:nth-child(5), .ufv-table td:nth-child(5) { min-width: 150px; } /* FECHA INICIAL */
+        .ufv-table th:nth-child(6), .ufv-table td:nth-child(6) { min-width: 80px; } /* ACCIONES */
+    </style>
+</head>
+<body>
+    <button class="menu-toggle" aria-label="Toggle menu" title="Toggle menu">
+        <i class="fas fa-bars"></i>
+    </button>
+    <div class="side_bar">
+        <div class="title">
+            <div class="logo">Sistema de Contabilidad</div>
+        </div>
+        <div class="menu">
+            <ul id="menu-list"></ul>
+        </div>
+        <div class="footer">
+            <p>Versión 1.0.0</p>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="header">
+            <div class="company-info">
+                <h4 class="editable" contenteditable="true" id="empresa-nombre">Empresa: LOS TRAVIESOS</h4>
+                <p class="editable" contenteditable="true" id="empresa-representante">De: Sr. Juan Marcelo Martínez Mamani</p>
+                <p class="editable" contenteditable="true" id="empresa-nit">NIT: 568791012</p>
+                <p class="editable" contenteditable="true" id="empresa-direccion">Calle Marineros esquina Caballeros Nº 245</p>
+                <p class="editable" contenteditable="true" id="empresa-telefono">Telf.: 4571022 Punata</p>
+                <p class="editable" contenteditable="true" id="empresa-telefono">Por el ejercicio del 1 de enero de 2024 al 31 de diciembre de 2024 (Expresado en Bolivianos)</p>
+            </div>
+            <div class="document-title">DETALLE DE ACTIVOS FIJOS</div>
+           
+        </div>
+
+        <div class="action-buttons">
+            <button class="btn btn-primary btn-action" onclick="addRow()"><i class="fas fa-plus"></i> Agregar Fila</button>
+            <button class="btn btn-success btn-action" onclick="document.getElementById('import-excel').click()"><i class="fas fa-file-import"></i> Importar Excel</button>
+
+            <button class="btn btn-danger btn-action" onclick="exportToPDF()"><i class="fas fa-file-pdf"></i> PDF</button>
+            <button class="btn btn-success btn-action" onclick="exportToExcel()"><i class="fas fa-file-excel"></i> Excel</button>
+        </div>
+        <input type="file" id="import-excel" style="display: none;" accept=".xlsx, .xls">
+
+        <div class="assets-container" id="assets-container">
+            <table class="assets-table table table-bordered">
+                <thead>
+                    <tr>
+                        <th>DETALLE</th>
+                        <th>CANT.</th>
+                        <th>COSTO UNITARIO</th>
+                        <th>FECHA ADQUISICIÓN</th>
+                        <th>%</th>
+                        <th>VIDA ÚTIL (AÑOS)</th>
+                        <th>VALOR EN LIBROS</th>
+                        <th>FACTOR</th>
+                        <th>ACTUALIZACIÓN</th>
+                        <th>VALOR ACTUALIZADO</th>
+                        <th>DEPRECIACIÓN</th>
+                        <th class="no-print"></th>
+                    </tr>
+                </thead>
+                <tbody id="assets-body">
+                    <!-- Filas generadas dinámicamente -->
+                </tbody>
+                <tfoot>
+                    <tr class="total-row">
+                        <td>TOTAL GENERAL DE ACTIVOS FIJOS</td>
+                        <td id="total-cantidad"></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td id="total-valor-libros"></td>
+                        <td></td>
+                        <td id="total-actualizacion"></td>
+                        <td id="total-valor-actualizado"></td>
+                        <td id="total-depreciacion"></td>
+                        <td class="no-print"></td>
+                    </tr>
+                </tfoot>
+            </table>
+            <table class="ufv-table table table-bordered">
+                <thead>
+                    <tr>
+                        <th>CIUDAD Y FECHA FINAL</th>
+                        <th>UFV FINAL</th>
+                        <th>FACTOR</th>
+                        <th>UFV INICIAL</th>
+                        <th>FECHA INICIAL</th>
+                        <th class="no-print"></th>
+                    </tr>
+                </thead>
+                <tbody id="ufv-body">
+                    <!-- UFV rows generated dynamically -->
+                </tbody>
+            </table>
+            <button class="btn btn-sm btn-primary btn-action no-print" onclick="addUfvRow()"><i class="fas fa-plus"></i> Agregar UFV</button>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const { jsPDF } = window.jspdf;
+
+                // Menú dinámico
+        const menuItems = [
+            { label: '1. Balance de Apertura', href: '../1.Balance de Apertura/index.html', icon: 'fas fa-file-invoice-dollar' },
+            { label: '2. Libro Diario', href: '../2.libro diario/index.html', icon: 'fas fa-book-journal-whills' },
+            { label: '3. Cálculos Auxiliares Compras', href: '../3.Calculos Auxiliares Compras/index.html', icon: 'fas fa-calculator' },
+            { label: '4. Cálculos Auxiliares Ventas', href: '../4.CALCULOS AUXILIARES VENTAS/index.html', icon: 'fas fa-calculator' },
+            { label: '5. Otros Cálculos Auxiliares', href: '../5.Otros CALCULOS AUXILIARES/index.html', icon: 'fas fa-calculator' },
+            { label: '6. Liquidación Impuestos LM', href: '../6.LIQUIDACIÓN IMPUESTOS LM/index.html', icon: 'fas fa-file-invoice' },
+            { label: '7. Kardex', href: '../7.Kardexs/index.html', icon: 'fas fa-boxes-stacked' },
+            { label: '8. Libro Mayor', href: '../8.Libro Mayor/index.html', icon: 'fas fa-book' },
+            { label: '9. BCSS', href: '../9.BCSS/index.html', icon: 'fas fa-balance-scale' },
+            { label: '10. Act. Fijos', href: '../10.fijos/index.html', icon: 'fas fa-building-columns' },
+            { label: '11. Act. Patrimonio', href: '../11.patrimonio/index.html', icon: 'fas fa-landmark' },
+            { label: '12. Ajustes', href: '../12.Ajustes/index.html', icon: 'fas fa-sliders' },
+            { label: '13. Hoja de 10 Columnas', href: '../13.hoja/index.html', icon: 'fas fa-table' },
+            { label: '14. Estado de Resultados', href: '../14.ESTADO DE RESULTADOS/index.html', icon: 'fas fa-chart-line' },
+            { label: '15. Balance General', href: '../15.BALANCE GENERAL/index.html', icon: 'fas fa-chart-pie' },
+            { label: '16. Cerrar', href: '../../inicio/index.html', icon: 'fas fa-power-off' }
+        ];
+
+        // Estado inicial con datos de activos fijos y UFV
+        const state = {
+            empresa: {
+                nombre: 'Empresa: LOS TRAVIESOS',
+                representante: 'De: Sr. Juan Marcelo Martínez Mamani',
+                nit: 'NIT: 568791012',
+                direccion: 'Calle Marineros esquina Caballeros Nº 245',
+                telefono: 'Telf.: 4571022 Punata'
+            },
+            periodo: 'Por el ejercicio del 1 de enero de 2024 al 31 de diciembre de 2024',
+            items: [
+                {
+                    detalle: 'Lote de 800 mts 2- Zona Oeste en Calle Marineros esquina Caballeros Nº 245',
+                    cantidad: 1,
+                    costo_unitario: 300000.00,
+                    fecha_adquisicion: '01 01 2024',
+                    porcentaje: 0,
+                    vida_util: 0,
+                    valor_libros: 300000.00,
+                    factor: 0.041938938,
+                    actualizacion: 12581.68,
+                    valor_actualizado: 312581.68,
+                    depreciacion: 0
+                },
+                {
+                    detalle: 'Computadora de escritorio HP',
+                    cantidad: 1,
+                    costo_unitario: 9000.00,
+                    fecha_adquisicion: '01 01 2024',
+                    porcentaje: 25,
+                    vida_util: 4,
+                    valor_libros: 9000.00,
+                    factor: 0.041938938,
+                    actualizacion: 377.45,
+                    valor_actualizado: 9377.45,
+                    depreciacion: 2250.00 // Corregido: (9000 / 4) * (25 / 100)
+                },
+                {
+                    detalle: 'Impresora',
+                    cantidad: 2,
+                    costo_unitario: 990.00,
+                    fecha_adquisicion: '25 02 2024',
+                    porcentaje: 25,
+                    vida_util: 4,
+                    valor_libros: 1980.00, // Corregido: 2 * 990
+                    factor: 0.041938938,
+                    actualizacion: 83.04, // Corregido: 1980 * 0.041938938
+                    valor_actualizado: 2063.04, // Corregido: 1980 + 83.04
+                    depreciacion: 495.00 // Corregido: (1980 / 4) * (25 / 100)
+                },
+                {
+                    detalle: 'Computadoras',
+                    cantidad: 2,
+                    costo_unitario: 4500.00,
+                    fecha_adquisicion: '19 05 2024',
+                    porcentaje: 25,
+                    vida_util: 4,
+                    valor_libros: 9000.00, // Corregido: 2 * 4500
+                    factor: 0.041938938,
+                    actualizacion: 377.45, // Corregido: 9000 * 0.041938938
+                    valor_actualizado: 9377.45, // Corregido: 9000 + 377.45
+                    depreciacion: 2250.00 // Corregido: (9000 / 4) * (25 / 100)
+                },
+                {
+                    detalle: 'Motocicleta Marca Kimgp',
+                    cantidad: 1,
+                    costo_unitario: 9396.00,
+                    fecha_adquisicion: '19 03 2024',
+                    porcentaje: 20,
+                    vida_util: 5,
+                    valor_libros: 9396.00,
+                    factor: 0.041938938,
+                    actualizacion: 394.06,
+                    valor_actualizado: 9790.06,
+                    depreciacion: 1879.20 // Corregido: (9396 / 5) * (20 / 100)
+                }
+            ],
+            ufv: [
+                {
+                    cityDateFinal: 'Cochabamba, 31 de diciembre de 2024',
+                    ufvFinal: 2.57833,
+                    factor: 0.041938938,
+                    ufvInicial: 2.47455,
+                    dateInicial: '01 de enero de 2024'
+                }
+            ]
+        };
+
+        // Formatear número
+        function formatCurrency(value) {
+            return Number(value || 0).toLocaleString('es-BO', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        // Validar entrada numérica
+        function validateInput(input) {
+            if (input.value === '' || isNaN(input.value)) {
+                input.value = '0.00';
+            } else if (parseFloat(input.value) < 0) {
+                input.value = '0.00';
+                alert('No se permiten valores negativos.');
+            }
+            updateRowCalculations(input.closest('tr'));
+            calculateTotals();
+            saveToLocalStorage();
+        }
+
+        // Calcular valores de la fila
+        function updateRowCalculations(row) {
+            const cantidad = parseFloat(row.querySelector('.cantidad')?.value) || 0;
+            const costo_unitario = parseFloat(row.querySelector('.costo-unitario')?.value) || 0;
+            const porcentaje = parseFloat(row.querySelector('.porcentaje')?.value) || 0;
+            const vida_util = parseFloat(row.querySelector('.vida-util')?.value) || 0;
+            const factor = state.ufv[0]?.factor || 0.041938938;
+
+            const valor_libros = cantidad * costo_unitario;
+            row.querySelector('.valor-libros').value = formatCurrency(valor_libros);
+
+            const actualizacion = valor_libros * factor;
+            row.querySelector('.actualizacion').value = formatCurrency(actualizacion);
+
+            const valor_actualizado = valor_libros + actualizacion;
+            row.querySelector('.valor-actualizado').value = formatCurrency(valor_actualizado);
+
+            const depreciacion = vida_util > 0 ? (valor_libros / vida_util) * (porcentaje / 100) : 0;
+            row.querySelector('.depreciacion').value = formatCurrency(depreciacion);
+
+            row.querySelector('.factor').value = formatCurrency(factor);
+        }
+
+        // Calcular totales
+        function calculateTotals() {
+            const rows = document.querySelectorAll('#assets-body tr:not(.total-row)');
+            let total_cantidad = 0;
+            let total_valor_libros = 0;
+            let total_actualizacion = 0;
+            let total_valor_actualizado = 0;
+            let total_depreciacion = 0;
+
+            rows.forEach(row => {
+                total_cantidad += parseFloat(row.querySelector('.cantidad')?.value) || 0;
+                total_valor_libros += parseFloat(row.querySelector('.valor-libros')?.value.replace(/,/g, '')) || 0;
+                total_actualizacion += parseFloat(row.querySelector('.actualizacion')?.value.replace(/,/g, '')) || 0;
+                total_valor_actualizado += parseFloat(row.querySelector('.valor-actualizado')?.value.replace(/,/g, '')) || 0;
+                total_depreciacion += parseFloat(row.querySelector('.depreciacion')?.value.replace(/,/g, '')) || 0;
+            });
+
+            document.getElementById('total-cantidad').textContent = total_cantidad.toFixed(0);
+            document.getElementById('total-valor-libros').textContent = formatCurrency(total_valor_libros);
+            document.getElementById('total-actualizacion').textContent = formatCurrency(total_actualizacion);
+            document.getElementById('total-valor-actualizado').textContent = formatCurrency(total_valor_actualizado);
+            document.getElementById('total-depreciacion').textContent = formatCurrency(total_depreciacion);
+        }
+
+        // Calcular factor UFV
+        function calculateUfvFactor(row) {
+            const ufvFinal = parseFloat(row.querySelector('.ufv-final')?.value) || 0;
+            const ufvInicial = parseFloat(row.querySelector('.ufv-inicial')?.value) || 0;
+            const factor = ufvInicial ? (ufvFinal - ufvInicial) / ufvInicial : 0;
+            row.querySelector('.ufv-factor').textContent = formatCurrency(factor);
+            return factor;
+        }
+
+        // Renderizar filas de activos
+        function renderRows() {
+            const tbody = document.getElementById('assets-body');
+            tbody.innerHTML = '';
+            state.items.forEach(item => {
+                const rowHtml = `
+                    <tr>
+                        <td class="editable" contenteditable="true">${item.detalle}</td>
+                        <td><input type="number" class="cantidad form-control" value="${item.cantidad}" step="1"></td>
+                        <td><input type="number" class="costo-unitario form-control" value="${formatCurrency(item.costo_unitario)}" step="0.01"></td>
+                        <td class="editable" contenteditable="true">${item.fecha_adquisicion}</td>
+                        <td><input type="number" class="porcentaje form-control" value="${item.porcentaje}" step="0.01"></td>
+                        <td><input type="number" class="vida-util form-control" value="${item.vida_util}" step="1"></td>
+                        <td><input type="text" class="valor-libros form-control" value="${formatCurrency(item.valor_libros)}" readonly></td>
+                        <td><input type="text" class="factor form-control" value="${formatCurrency(item.factor)}" readonly></td>
+                        <td><input type="text" class="actualizacion form-control" value="${formatCurrency(item.actualizacion)}" readonly></td>
+                        <td><input type="text" class="valor-actualizado form-control" value="${formatCurrency(item.valor_actualizado)}" readonly></td>
+                        <td><input type="text" class="depreciacion form-control" value="${formatCurrency(item.depreciacion)}" readonly></td>
+                        <td class="no-print">
+                            <button class="btn btn-sm btn-danger" onclick="deleteRow(this)"><i class="fas fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+                tbody.insertAdjacentHTML('beforeend', rowHtml);
+            });
+
+            document.querySelectorAll('.cantidad, .costo-unitario, .porcentaje, .vida-util').forEach(input => {
+                input.addEventListener('input', () => validateInput(input));
+            });
+            document.querySelectorAll('.editable').forEach(elem => {
+                elem.addEventListener('blur', updateState);
+            });
+            calculateTotals();
+        }
+
+        // Renderizar filas de UFV
+        function renderUfvRows() {
+            const ufvTbody = document.getElementById('ufv-body');
+            ufvTbody.innerHTML = state.ufv.map((ufv, index) => `
+                <tr>
+                    <td><input type="text" class="city-date-final form-control" value="${ufv.cityDateFinal}"></td>
+                    <td><input type="number" class="ufv-final form-control" value="${ufv.ufvFinal}" step="0.00001"></td>
+                    <td class="ufv-factor">${formatCurrency(ufv.factor)}</td>
+                    <td><input type="number" class="ufv-inicial form-control" value="${ufv.ufvInicial}" step="0.00001"></td>
+                    <td><input type="text" class="date-inicial form-control" value="${ufv.dateInicial}"></td>
+                    <td class="no-print">
+                        <button class="btn btn-sm btn-danger" onclick="deleteUfvRow(this)"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>
+            `).join('');
+            document.querySelectorAll('.ufv-table tbody tr').forEach(row => calculateUfvFactor(row));
+            document.querySelectorAll('.city-date-final, .ufv-final, .ufv-inicial, .date-inicial').forEach(input => {
+                input.addEventListener('input', () => {
+                    const row = input.closest('tr');
+                    const newFactor = calculateUfvFactor(row);
+                    updateFactors(newFactor);
+                    updateState();
+                });
+            });
+        }
+
+        // Actualizar factores en la tabla de activos
+        function updateFactors(newFactor) {
+            state.ufv[0].factor = newFactor;
+            document.querySelectorAll('#assets-body tr:not(.total-row)').forEach(row => {
+                row.querySelector('.factor').value = formatCurrency(newFactor);
+                updateRowCalculations(row);
+            });
+            calculateTotals();
+        }
+
+        // Agregar nueva fila de activo
+        function addRow() {
+            state.items.push({
+                detalle: 'Nuevo Activo',
+                cantidad: 1,
+                costo_unitario: 0,
+                fecha_adquisicion: '01 01 2024',
+                porcentaje: 0,
+                vida_util: 0,
+                valor_libros: 0,
+                factor: state.ufv[0]?.factor || 0.041938938,
+                actualizacion: 0,
+                valor_actualizado: 0,
+                depreciacion: 0
+            });
+            renderRows();
+            saveToLocalStorage();
+        }
+
+        // Eliminar fila de activo
+        function deleteRow(btn) {
+            const row = btn.closest('tr');
+            const index = Array.from(document.querySelectorAll('#assets-body tr')).indexOf(row);
+            state.items.splice(index, 1);
+            renderRows();
+            saveToLocalStorage();
+        }
+
+        // Agregar nueva fila de UFV
+        function addUfvRow() {
+            state.ufv.push({
+                cityDateFinal: 'Cochabamba, 31 de diciembre de 2024',
+                ufvFinal: 0,
+                factor: 0,
+                ufvInicial: 0,
+                dateInicial: '01 de enero de 2024'
+            });
+            renderUfvRows();
+            saveToLocalStorage();
+        }
+
+        // Eliminar fila de UFV
+        function deleteUfvRow(btn) {
+            const row = btn.closest('tr');
+            const index = Array.from(row.parentElement.children).indexOf(row);
+            state.ufv.splice(index, 1);
+            if (state.ufv.length === 0) {
+                state.ufv.push({
+                    cityDateFinal: 'Cochabamba, 31 de diciembre de 2024',
+                    ufvFinal: 0,
+                    factor: 0,
+                    ufvInicial: 0,
+                    dateInicial: '01 de enero de 2024'
+                });
+            }
+            renderUfvRows();
+            updateFactors(state.ufv[0].factor);
+            saveToLocalStorage();
+        }
+
+        // Actualizar estado
+        function updateState() {
+            state.empresa.nombre = document.getElementById('empresa-nombre').textContent;
+            state.empresa.representante = document.getElementById('empresa-representante').textContent;
+            state.empresa.nit = document.getElementById('empresa-nit').textContent;
+            state.empresa.direccion = document.getElementById('empresa-direccion').textContent;
+            state.empresa.telefono = document.getElementById('empresa-telefono').textContent;
+            state.periodo = document.getElementById('periodo').textContent;
+
+            state.items = Array.from(document.querySelectorAll('#assets-body tr')).map(row => ({
+                detalle: row.querySelector('.editable:nth-child(1)').textContent,
+                cantidad: parseInt(row.querySelector('.cantidad')?.value) || 0,
+                costo_unitario: parseFloat(row.querySelector('.costo-unitario')?.value.replace(/,/g, '')) || 0,
+                fecha_adquisicion: row.querySelector('.editable:nth-child(4)').textContent,
+                porcentaje: parseFloat(row.querySelector('.porcentaje')?.value) || 0,
+                vida_util: parseInt(row.querySelector('.vida-util')?.value) || 0,
+                valor_libros: parseFloat(row.querySelector('.valor-libros')?.value.replace(/,/g, '')) || 0,
+                factor: parseFloat(row.querySelector('.factor')?.value.replace(/,/g, '')) || state.ufv[0]?.factor || 0,
+                actualizacion: parseFloat(row.querySelector('.actualizacion')?.value.replace(/,/g, '')) || 0,
+                valor_actualizado: parseFloat(row.querySelector('.valor-actualizado')?.value.replace(/,/g, '')) || 0,
+                depreciacion: parseFloat(row.querySelector('.depreciacion')?.value.replace(/,/g, '')) || 0
+            }));
+
+            state.ufv = Array.from(document.querySelectorAll('.ufv-table tbody tr')).map(row => ({
+                cityDateFinal: row.querySelector('.city-date-final')?.value || '',
+                ufvFinal: parseFloat(row.querySelector('.ufv-final')?.value) || 0,
+                factor: parseFloat(row.querySelector('.ufv-factor')?.textContent.replace(/,/g, '')) || 0,
+                ufvInicial: parseFloat(row.querySelector('.ufv-inicial')?.value) || 0,
+                dateInicial: row.querySelector('.date-inicial')?.value || ''
+            }));
+
+            saveToLocalStorage();
+        }
+
+        // Guardar en localStorage
+        function saveToLocalStorage() {
+            localStorage.setItem('assetsData', JSON.stringify(state));
+        }
+
+        // Cargar desde localStorage
+        function loadFromLocalStorage() {
+            const data = JSON.parse(localStorage.getItem('assetsData'));
+            if (data) {
+                state.empresa = data.empresa;
+                state.periodo = data.periodo || state.periodo;
+                state.items = data.items;
+                state.ufv = data.ufv || state.ufv;
+                document.getElementById('empresa-nombre').textContent = state.empresa.nombre;
+                document.getElementById('empresa-representante').textContent = state.empresa.representante;
+                document.getElementById('empresa-nit').textContent = state.empresa.nit;
+                document.getElementById('empresa-direccion').textContent = state.empresa.direccion;
+                document.getElementById('empresa-telefono').textContent = state.empresa.telefono;
+                document.getElementById('periodo').textContent = state.periodo;
+            }
+            renderRows();
+            renderUfvRows();
+            updatePrintHeader();
+        }
+
+        // Actualizar cabecera de impresión
+        function updatePrintHeader() {
+            document.getElementById('print-empresa-nombre').textContent = state.empresa.nombre;
+            document.getElementById('print-empresa-representante').textContent = state.empresa.representante;
+            document.getElementById('print-empresa-nit').textContent = state.empresa.nit;
+            document.getElementById('print-empresa-direccion').textContent = state.empresa.direccion;
+            document.getElementById('print-empresa-telefono').textContent = state.empresa.telefono;
+            document.getElementById('print-periodo').textContent = state.periodo;
+        }
+
+        // Render menu dynamically
+        function renderMenu() {
+            const menuList = document.getElementById('menu-list');
+            const currentPath = window.location.pathname;
+            menuList.innerHTML = menuItems.map((item, index) => `
+                <li>
+                    <a href="${item.href}" class="ripple ${currentPath.includes(item.href) ? 'active' : ''}" title="${item.label}" role="menuitem">
+                        <i class="${item.icon}"></i>${item.label}
+                    </a>
+                </li>
+            `).join('');
+        }
+
+        // Toggle sidebar for mobile
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.side_bar');
+            const body = document.body;
+            sidebar.classList.toggle('active');
+            body.classList.toggle('menu-active');
+        }
+
+        // Ripple effect for menu
+        function addRippleEffect() {
+            document.querySelectorAll('.ripple').forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const rect = this.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    const ripple = document.createElement('span');
+                    ripple.classList.add('ripple-effect');
+                    ripple.style.left = `${x}px`;
+                    ripple.style.top = `${y}px`;
+                    this.appendChild(ripple);
+                    setTimeout(() => {
+                        ripple.remove();
+                        window.location.href = this.href;
+                    }, 600);
+                });
+            });
+        }
+
+        // Imprimir
+        function printAssets() {
+            updatePrintHeader();
+            window.print();
+        }
+
+        // Exportar a PDF
+        function exportToPDF() {
+            const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+
+            doc.setFontSize(12);
+            doc.text(state.empresa.nombre, 148.5, 10, { align: 'center' });
+            doc.setFontSize(10);
+            doc.text(state.empresa.representante, 148.5, 16, { align: 'center' });
+            doc.text(state.empresa.nit, 148.5, 22, { align: 'center' });
+            doc.text(state.empresa.direccion, 148.5, 28, { align: 'center' });
+            doc.text(state.empresa.telefono, 148.5, 34, { align: 'center' });
+            doc.setLineWidth(0.2);
+            doc.line(10, 38, 287, 38);
+            doc.setFontSize(11);
+            doc.text('DETALLE DE ACTIVOS FIJOS', 148.5, 44, { align: 'center' });
+            doc.text(state.periodo, 148.5, 50, { align: 'center' });
+            doc.text('(Expresado en Bolivianos)', 148.5, 56, { align: 'center' });
+            doc.line(10, 58, 287, 58);
+
+            doc.autoTable({
+                html: '.assets-table',
+                startY: 62,
+                margin: { left: 10, right: 10 },
+                theme: 'grid',
+                styles: { fontSize: 7, cellPadding: 2, textColor: [0, 0, 0], lineWidth: 0.2, lineColor: [0, 0, 0] },
+                headStyles: { fillColor: [224, 224, 224], textColor: [0, 0, 0], fontStyle: 'bold' },
+                alternateRowStyles: { fillColor: [248, 249, 250] },
+                columnStyles: {
+                    0: { halign: 'left', cellWidth: 60 },
+                    1: { halign: 'right', cellWidth: 15 },
+                    2: { halign: 'right', cellWidth: 25 },
+                    3: { halign: 'center', cellWidth: 25 },
+                    4: { halign: 'center', cellWidth: 15 },
+                    5: { halign: 'right', cellWidth: 20 },
+                    6: { halign: 'right', cellWidth: 25 },
+                    7: { halign: 'right', cellWidth: 20 },
+                    8: { halign: 'right', cellWidth: 25 },
+                    9: { halign: 'right', cellWidth: 25 },
+                    10: { halign: 'right', cellWidth: 25 },
+                    11: { halign: 'right', cellWidth: 0 }
+                }
+            });
+
+            let startY = doc.lastAutoTable.finalY + 5;
+            doc.autoTable({
+                html: '.ufv-table',
+                startY: startY,
+                margin: { left: 10, right: 10 },
+                theme: 'grid',
+                styles: { fontSize: 7, cellPadding: 2, textColor: [0, 0, 0], lineWidth: 0.2, lineColor: [0, 0, 0] },
+                headStyles: { fillColor: [224, 224, 224], textColor: [0, 0, 0], fontStyle: 'bold' },
+                alternateRowStyles: { fillColor: [248, 249, 250] },
+                columnStyles: {
+                    0: { halign: 'left', cellWidth: 60 },
+                    1: { halign: 'right', cellWidth: 30 },
+                    2: { halign: 'right', cellWidth: 30 },
+                    3: { halign: 'right', cellWidth: 30 },
+                    4: { halign: 'right', cellWidth: 50 },
+                    5: { halign: 'right', cellWidth: 0 }
+                }
+            });
+
+            doc.setFontSize(8);
+            doc.text('Sistema de Contabilidad - Versión 1.0.0', 287, 200, { align: 'right' });
+            doc.save('Detalle_Activos_Fijos.pdf');
+        }
+
+        // Exportar a Excel
+        function exportToExcel() {
+            const wb = XLSX.utils.book_new();
+            const wsData = [
+                [state.empresa.nombre],
+                [state.empresa.representante],
+                [state.empresa.nit],
+                [state.empresa.direccion],
+                [state.empresa.telefono],
+                [],
+                ['DETALLE DE ACTIVOS FIJOS'],
+                [state.periodo],
+                ['(Expresado en Bolivianos)'],
+                [],
+                ['DETALLE', 'CANT.', 'COSTO UNITARIO', 'FECHA ADQUISICIÓN', '%', 'VIDA ÚTIL (AÑOS)', 'VALOR EN LIBROS', 'FACTOR', 'ACTUALIZACIÓN', 'VALOR ACTUALIZADO', 'DEPRECIACIÓN']
+            ];
+
+            document.querySelectorAll('#assets-body tr').forEach(row => {
+                const cells = Array.from(row.querySelectorAll('td')).map(td => td.textContent || td.querySelector('input')?.value.replace(/,/g, '') || '');
+                wsData.push(cells.slice(0, 11));
+            });
+
+            wsData.push(['TOTAL GENERAL DE ACTIVOS FIJOS', document.getElementById('total-cantidad').textContent, '', '', '', '', 
+                document.getElementById('total-valor-libros').textContent.replace(/,/g, ''),
+                '',
+                document.getElementById('total-actualizacion').textContent.replace(/,/g, ''),
+                document.getElementById('total-valor-actualizado').textContent.replace(/,/g, ''),
+                document.getElementById('total-depreciacion').textContent.replace(/,/g, '')
+            ]);
+
+            wsData.push([]);
+            wsData.push(['CIUDAD Y FECHA FINAL', 'UFV FINAL', 'FACTOR', 'UFV INICIAL', 'FECHA INICIAL']);
+            state.ufv.forEach(ufv => {
+                wsData.push([
+                    ufv.cityDateFinal,
+                    ufv.ufvFinal.toFixed(5),
+                    ufv.factor.toFixed(8),
+                    ufv.ufvInicial.toFixed(5),
+                    ufv.dateInicial
+                ]);
+            });
+
+            const ws = XLSX.utils.aoa_to_sheet(wsData);
+            XLSX.utils.book_append_sheet(wb, ws, 'ActivosFijos');
+            XLSX.writeFile(wb, 'Detalle_Activos_Fijos.xlsx');
+        }
+
+        // Importar desde Excel
+        document.getElementById('import-excel').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                const json = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+
+                state.empresa.nombre = json[0][0] || state.empresa.nombre;
+                state.empresa.representante = json[1][0] || state.empresa.representante;
+                state.empresa.nit = json[2][0] || state.empresa.nit;
+                state.empresa.direccion = json[3][0] || state.empresa.direccion;
+                state.empresa.telefono = json[4][0] || state.empresa.telefono;
+                state.periodo = json[7][0] || state.periodo;
+
+                document.getElementById('empresa-nombre').textContent = state.empresa.nombre;
+                document.getElementById('empresa-representante').textContent = state.empresa.representante;
+                document.getElementById('empresa-nit').textContent = state.empresa.nit;
+                document.getElementById('empresa-direccion').textContent = state.empresa.direccion;
+                document.getElementById('empresa-telefono').textContent = state.empresa.telefono;
+                document.getElementById('periodo').textContent = state.periodo;
+
+                state.items = [];
+                let ufvStartIndex = json.findIndex(row => row[0]?.includes('CIUDAD Y FECHA FINAL')) + 1;
+                json.slice(10, ufvStartIndex - 1).forEach(row => {
+                    if (row[0] && row[0] !== 'TOTAL GENERAL DE ACTIVOS FIJOS') {
+                        const item = {
+                            detalle: row[0] || '',
+                            cantidad: parseInt(row[1]) || 0,
+                            costo_unitario: parseFloat(row[2]) || 0,
+                            fecha_adquisicion: row[3] || '01 01 2024',
+                            porcentaje: parseFloat(row[4]) || 0,
+                            vida_util: parseInt(row[5]) || 0,
+                            valor_libros: parseFloat(row[6]) || 0,
+                            factor: state.ufv[0]?.factor || 0.041938938,
+                            actualizacion: parseFloat(row[8]) || 0,
+                            valor_actualizado: parseFloat(row[9]) || 0,
+                            depreciacion: parseFloat(row[10]) || 0
+                        };
+                        state.items.push(item);
+                    }
+                });
+
+                state.ufv = [];
+                json.slice(ufvStartIndex).forEach(row => {
+                    if (row[0]) {
+                        const ufv = {
+                            cityDateFinal: row[0],
+                            ufvFinal: parseFloat(row[1]) || 0,
+                            factor: parseFloat(row[2]) || 0,
+                            ufvInicial: parseFloat(row[3]) || 0,
+                            dateInicial: row[4] || ''
+                        };
+                        state.ufv.push(ufv);
+                    }
+                });
+
+                if (state.ufv.length === 0) {
+                    state.ufv.push({
+                        cityDateFinal: 'Cochabamba, 31 de diciembre de 2024',
+                        ufvFinal: 0,
+                        factor: 0,
+                        ufvInicial: 0,
+                        dateInicial: '01 de enero de 2024'
+                    });
+                }
+
+                renderRows();
+                renderUfvRows();
+                saveToLocalStorage();
+            };
+            reader.readAsArrayBuffer(file);
+        });
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            renderMenu();
+            addRippleEffect();
+            document.querySelector('.menu-toggle').addEventListener('click', toggleSidebar);
+            document.querySelectorAll('.menu a').forEach(link => {
+                link.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        link.click();
+                    }
+                });
+            });
+            document.getElementById('periodo').addEventListener('blur', updateState);
+            loadFromLocalStorage();
+        });
+    </script>
+</body>
+</html>

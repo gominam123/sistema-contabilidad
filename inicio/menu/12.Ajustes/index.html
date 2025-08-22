@@ -1,0 +1,1278 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Contabilidad - Ajustes</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #1a73e8;
+            --secondary-color: #34a853;
+            --text-color: #2c3e50;
+            --light-bg: #f8f9fa;
+            --menu-hover: #f5f7fa;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            --table-header-bg: #e3f2fd;
+            --table-row-alt: #f9fafb;
+            --bcss-accent: #e0f7fa;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        body {
+            background: var(--light-bg);
+            min-height: 100vh;
+            margin-left: 300px;
+            padding: 15px;
+            transition: margin-left var(--transition);
+        }
+
+        .side_bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 300px;
+            height: 100vh;
+            background: white;
+            padding: 20px 0;
+            box-shadow: var(--shadow);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            transition: transform var(--transition);
+        }
+
+        .side_bar .title {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            margin-bottom: 10px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .side_bar .title .logo {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--primary-color);
+            letter-spacing: 0.5px;
+            text-align: center;
+        }
+
+        .side_bar .menu {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0 15px;
+        }
+
+        .side_bar .menu::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .side_bar .menu::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 4px;
+        }
+
+        .side_bar .menu::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .side_bar ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .side_bar ul li {
+            margin: 5px 0;
+            position: relative;
+        }
+
+        .side_bar ul a {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--text-color);
+            text-decoration: none;
+            border-radius: 8px;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .side_bar ul a:hover {
+            background-color: var(--menu-hover);
+            color: var(--primary-color);
+            transform: translateX(5px);
+        }
+
+        .side_bar ul a.active {
+            background: linear-gradient(90deg, var(--primary-color), #60a5fa);
+            color: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .side_bar ul a.active i {
+            color: white;
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .side_bar ul i {
+            margin-right: 12px;
+            font-size: 16px;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            transition: var(--transition);
+        }
+
+        .side_bar ul li:nth-child(1) i { background-color: #4CAF50; color: white; }
+        .side_bar ul li:nth-child(2) i { background-color: #2196F3; color: white; }
+        .side_bar ul li:nth-child(3) i { background-color: #FF9800; color: white; }
+        .side_bar ul li:nth-child(4) i { background-color: #9C27B0; color: white; }
+        .side_bar ul li:nth-child(5) i { background-color: #607D8B; color: white; }
+        .side_bar ul li:nth-child(6) i { background-color: #F44336; color: white; }
+        .side_bar ul li:nth-child(7) i { background-color: #795548; color: white; }
+        .side_bar ul li:nth-child(8) i { background-color: #00BCD4; color: white; }
+        .side_bar ul li:nth-child(9) i { background-color: #8BC34A; color: white; }
+        .side_bar ul li:nth-child(10) i { background-color: #3F51B5; color: white; }
+        .side_bar ul li:nth-child(11) i { background-color: #009688; color: white; }
+        .side_bar ul li:nth-child(12) i { background-color: #E91E63; color: white; }
+        .side_bar ul li:nth-child(13) i { background-color: #CDDC39; color: #333; }
+        .side_bar ul li:nth-child(14) i { background-color: #FF5722; color: white; }
+        .side_bar ul li:nth-child(15) i { background-color: #673AB7; color: white; }
+        .side_bar ul li:nth-child(16) i { background-color: #333; color: white; }
+
+        .side_bar .footer {
+            padding: 15px;
+            text-align: center;
+            margin-top: auto;
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+            font-size: 0.85rem;
+            color: var(--text-color);
+        }
+
+        .ripple-effect {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.4);
+            transform: scale(0);
+            animation: ripple 0.6s linear;
+            pointer-events: none;
+        }
+
+        @keyframes ripple {
+            to {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+
+        .menu-toggle {
+            display: none;
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            z-index: 1100;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 20px;
+            cursor: pointer;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+
+        .menu-toggle:hover {
+            background: #1557b0;
+        }
+
+        @media (max-width: 992px) {
+            body {
+                margin-left: 0;
+            }
+
+            .side_bar {
+                transform: translateX(-100%);
+                width: 250px;
+            }
+
+            .side_bar.active {
+                transform: translateX(0);
+            }
+
+            body.menu-active {
+                margin-left: 250px;
+            }
+
+            .menu-toggle {
+                display: block;
+            }
+
+            .ajustes-table {
+                font-size: 0.7rem;
+            }
+
+            .ajustes-table th, .ajustes-table td {
+                padding: 6px;
+            }
+        }
+
+        @media print {
+            @page {
+                size: A4 portrait;
+                margin: 10mm;
+            }
+
+            body {
+                margin: 0;
+                background: white;
+                font-size: 6pt;
+                padding: 0;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            .side_bar, .action-buttons, .no-print, .header, .menu-toggle {
+                display: none !important;
+            }
+
+            #print-header {
+                display: block;
+                text-align: center;
+                margin-bottom: 5mm;
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                padding: 5mm 10mm 0;
+                font-size: 8pt;
+            }
+
+            #print-header h4 {
+                font-size: 10pt;
+                font-weight: bold;
+                margin-bottom: 2mm;
+            }
+
+            #print-header p {
+                margin: 1mm 0;
+                font-size: 6pt;
+            }
+
+            #print-header .print-document-title {
+                font-size: 8pt;
+                font-weight: bold;
+                text-transform: uppercase;
+                margin: 3mm 0;
+                border-top: 0.5pt solid #000;
+                border-bottom: 0.5pt solid #000;
+                padding: 2mm 0;
+            }
+
+            .main-content, .ajustes-container {
+                padding: 0;
+                margin: 0;
+                max-width: 100%;
+                width: 100%;
+                box-shadow: none;
+                border-radius: 0;
+            }
+
+            .ajustes-table {
+                width: 100% !important;
+                font-size: 6pt;
+                border: 0.5pt solid #000;
+                border-collapse: collapse;
+                margin-bottom: 3mm;
+            }
+
+            .ajustes-table th, .ajustes-table td {
+                border: 0.5pt solid #000;
+                padding: 1.5mm !important;
+                vertical-align: middle;
+            }
+
+            .ajustes-table th {
+                background-color: #e0e0e0 !important;
+                font-weight: bold;
+                text-align: center;
+                color: #000;
+            }
+
+            .ajustes-table td:first-child, .ajustes-table td:nth-child(2), .ajustes-table td:nth-child(3) {
+                text-align: left;
+            }
+
+            .ajustes-table input {
+                border: none;
+                background: transparent;
+                padding: 0;
+                text-align: inherit;
+                outline: none;
+                font-size: 6pt;
+            }
+
+            .ajustes-table .total-row {
+                background-color: #f0f0f0 !important;
+                font-weight: bold;
+            }
+
+            .ajustes-table .sub-item {
+                padding-left: 10px;
+            }
+        }
+
+        .main-content {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background-color: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            margin-bottom: 20px;
+        }
+
+        .company-info h4 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text-color);
+            margin-bottom: 5px;
+        }
+
+        .company-info p {
+            font-size: 0.8rem;
+            color: var(--text-color);
+            margin: 2px 0;
+        }
+
+        .document-title {
+            text-align: center;
+            font-weight: bold;
+            font-size: 1rem;
+            margin: 15px 0;
+            color: var(--text-color);
+            text-transform: uppercase;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 5px;
+        }
+
+        .action-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            margin-bottom: 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: var(--light-bg);
+            padding: 10px;
+        }
+
+        .btn-action {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-weight: 500;
+            font-size: 0.85rem;
+            transition: var(--transition);
+        }
+
+        .btn-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .ajustes-container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            padding: 15px;
+            overflow-x: auto;
+        }
+
+        .ajustes-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            font-size: 0.8rem;
+            margin-bottom: 20px;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .ajustes-table th {
+            background-color: var(--table-header-bg);
+            text-align: center;
+            padding: 8px 6px;
+            border-bottom: 2px solid #bbdefb;
+            font-weight: 600;
+            font-size: 0.8rem;
+            color: var(--text-color);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+
+        .ajustes-table td {
+            padding: 8px 6px;
+            border-bottom: 1px solid #eceff1;
+            vertical-align: middle;
+            text-align: right;
+            transition: background-color 0.2s;
+        }
+
+        .ajustes-table tr:nth-child(even) {
+            background-color: var(--table-row-alt);
+        }
+
+        .ajustes-table tr:hover {
+            background-color: #f1f8ff;
+        }
+
+        .ajustes-table td:first-child, .ajustes-table td:nth-child(2), .ajustes-table td:nth-child(3) {
+            text-align: left;
+        }
+
+        .ajustes-table .total-row td {
+            font-weight: bold;
+            background-color: #e3f2fd;
+            border-top: 2px dashed #bbdefb;
+            padding: 10px 6px;
+        }
+
+        .ajustes-table input {
+            width: 100%;
+            padding: 4px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            text-align: inherit;
+            transition: border-color 0.2s;
+        }
+
+        .ajustes-table input:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.2);
+        }
+
+        .ajustes-table .editable:hover {
+            background-color: #e8f0fe;
+            outline: 1px dashed var(--primary-color);
+            cursor: text;
+        }
+
+        .ajustes-table .no-print button {
+            padding: 4px 8px;
+            font-size: 0.7rem;
+            line-height: 1.2;
+            margin: 0 2px;
+        }
+
+        .ajustes-table .no-print button:hover {
+            transform: scale(1.1);
+        }
+
+        .ajustes-table .sub-item td:not(:last-child) {
+            padding-left: 15px;
+        }
+
+        .ajustes-table th:nth-child(1), .ajustes-table td:nth-child(1) { min-width: 60px; } /* AD */
+        .ajustes-table th:nth-child(2), .ajustes-table td:nth-child(2) { min-width: 80px; } /* FECHA */
+        .ajustes-table th:nth-child(3), .ajustes-table td:nth-child(3) { min-width: 200px; } /* DETALLE */
+        .ajustes-table th:nth-child(4), .ajustes-table td:nth-child(4) { min-width: 50px; } /* F/M */
+        .ajustes-table th:nth-child(5), .ajustes-table td:nth-child(5) { min-width: 80px; } /* PARCIAL */
+        .ajustes-table th:nth-child(6), .ajustes-table td:nth-child(6) { min-width: 80px; } /* DEBE */
+        .ajustes-table th:nth-child(7), .ajustes-table td:nth-child(7) { min-width: 80px; } /* HABER */
+        .ajustes-table th:nth-child(8), .ajustes-table td:nth-child(8) { min-width: 150px; } /* ACCIONES */
+    </style>
+</head>
+<body>
+    <button class="menu-toggle" aria-label="Toggle menu" title="Toggle menu">
+        <i class="fas fa-bars"></i>
+    </button>
+    <div class="side_bar">
+        <div class="title">
+            <div class="logo">Sistema de Contabilidad</div>
+        </div>
+        <div class="menu">
+            <ul id="menu-list"></ul>
+        </div>
+        <div class="footer">
+            <p>Versión 1.0.0</p>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="header">
+            <div class="company-info">
+                <h4 class="editable" contenteditable="true" id="empresa-nombre">Empresa: LOS TRAVIESOS</h4>
+                <p class="editable" contenteditable="true" id="empresa-representante">De: Sr. Juan Marcelo Martínez Mamani</p>
+                <p class="editable" contenteditable="true" id="empresa-nit">NIT: 568791012</p>
+                <p class="editable" contenteditable="true" id="empresa-direccion">Calle Marineros esquina Caballeros Nº 245</p>
+                <p class="editable" contenteditable="true" id="empresa-telefono">Telf.: 4571022 Punata</p>
+                
+            </div>
+            <div class="document-title">AJUSTES</div>
+            <p class="editable" contenteditable="true" id="periodo">Por el ejercicio del 1 de enero de 2024 al 31 de diciembre de 2024</p>
+            
+        </div>
+
+        <div class="action-buttons">
+            <button class="btn btn-primary btn-action" onclick="addRow('main')"><i class="fas fa-plus"></i> Agregar Ajuste</button>
+            <button class="btn btn-success btn-action" onclick="document.getElementById('import-excel').click()"><i class="fas fa-file-import"></i> Importar Excel</button>
+
+            <button class="btn btn-danger btn-action" onclick="exportToPDF()"><i class="fas fa-file-pdf"></i> PDF</button>
+            <button class="btn btn-success btn-action" onclick="exportToExcel()"><i class="fas fa-file-excel"></i> Excel</button>
+        </div>
+        <input type="file" id="import-excel" style="display: none;" accept=".xlsx, .xls">
+
+        <div class="ajustes-container" id="ajustes-container">
+            <table class="ajustes-table table table-bordered">
+                <thead>
+                    <tr>
+                        <th>AD</th>
+                        <th>FECHA</th>
+                        <th>DETALLE</th>
+                        <th>F/M</th>
+                        <th>PARCIAL</th>
+                        <th>DEBE</th>
+                        <th>HABER</th>
+                        <th class="no-print">ACCIONES</th>
+                    </tr>
+                </thead>
+                <tbody id="ajustes-body">
+                    <!-- Filas generadas dinámicamente -->
+                </tbody>
+                <tfoot>
+                    <tr class="total-row">
+                        <td colspan="5">TOTALES</td>
+                        <td id="total-debe"></td>
+                        <td id="total-haber"></td>
+                        <td class="no-print"></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const { jsPDF } = window.jspdf;
+
+           // Menú dinámico
+        const menuItems = [
+            { label: '1. Balance de Apertura', href: '../1.Balance de Apertura/index.html', icon: 'fas fa-file-invoice-dollar' },
+            { label: '2. Libro Diario', href: '../2.libro diario/index.html', icon: 'fas fa-book-journal-whills' },
+            { label: '3. Cálculos Auxiliares Compras', href: '../3.Calculos Auxiliares Compras/index.html', icon: 'fas fa-calculator' },
+            { label: '4. Cálculos Auxiliares Ventas', href: '../4.CALCULOS AUXILIARES VENTAS/index.html', icon: 'fas fa-calculator' },
+            { label: '5. Otros Cálculos Auxiliares', href: '../5.Otros CALCULOS AUXILIARES/index.html', icon: 'fas fa-calculator' },
+            { label: '6. Liquidación Impuestos LM', href: '../6.LIQUIDACIÓN IMPUESTOS LM/index.html', icon: 'fas fa-file-invoice' },
+            { label: '7. Kardex', href: '../7.Kardexs/index.html', icon: 'fas fa-boxes-stacked' },
+            { label: '8. Libro Mayor', href: '../8.Libro Mayor/index.html', icon: 'fas fa-book' },
+            { label: '9. BCSS', href: '../9.BCSS/index.html', icon: 'fas fa-balance-scale' },
+            { label: '10. Act. Fijos', href: '../10.fijos/index.html', icon: 'fas fa-building-columns' },
+            { label: '11. Act. Patrimonio', href: '../11.patrimonio/index.html', icon: 'fas fa-landmark' },
+            { label: '12. Ajustes', href: '../12.Ajustes/index.html', icon: 'fas fa-sliders' },
+            { label: '13. Hoja de 10 Columnas', href: '../13.hoja/index.html', icon: 'fas fa-table' },
+            { label: '14. Estado de Resultados', href: '../14.ESTADO DE RESULTADOS/index.html', icon: 'fas fa-chart-line' },
+            { label: '15. Balance General', href: '../15.BALANCE GENERAL/index.html', icon: 'fas fa-chart-pie' },
+            { label: '16. Cerrar', href: '../../inicio/index.html', icon: 'fas fa-power-off' }
+        ];
+
+        // Estado inicial con datos de ajustes
+        const state = {
+            empresa: {
+                nombre: 'Empresa: LOS TRAVIESOS',
+                representante: 'De: Sr. Juan Marcelo Martínez Mamani',
+                nit: 'NIT: 568791012',
+                direccion: 'Calle Marineros esquina Caballeros Nº 245',
+                telefono: 'Telf.: 4571022 Punata'
+            },
+            periodo: 'Por el ejercicio del 1 de enero de 2024 al 31 de diciembre de 2024',
+            items: [
+                {
+                    ad: '',
+                    fecha: '31 12 2024',
+                    detalle: '_________________AA-1________________',
+                    fm: '',
+                    parcial: '',
+                    debe: '',
+                    haber: ''
+                },
+                {
+                    ad: 'AA-1',
+                    fecha: '',
+                    detalle: 'Caja Moneda Nacional',
+                    fm: '1',
+                    parcial: '',
+                    debe: '236.64',
+                    haber: ''
+                },
+                {
+                    ad: 'AA-1',
+                    fecha: '',
+                    detalle: 'Material de oficina',
+                    fm: '14',
+                    parcial: '',
+                    debe: '',
+                    haber: '236.64'
+                },
+                {
+                    ad: '',
+                    fecha: '',
+                    detalle: 'Por el consumo en un 40% de los materiales de escritorio.',
+                    fm: '',
+                    parcial: '',
+                    debe: '',
+                    haber: ''
+                },
+                {
+                    ad: '',
+                    fecha: '31 12 2024',
+                    detalle: '_________________AA-2________________',
+                    fm: '',
+                    parcial: '',
+                    debe: '',
+                    haber: ''
+                },
+                {
+                    ad: 'AA-2',
+                    fecha: '',
+                    detalle: 'Caja Moneda Nacional',
+                    fm: '1',
+                    parcial: '',
+                    debe: '471.98',
+                    haber: ''
+                },
+                {
+                    ad: 'AA-2',
+                    fecha: '',
+                    detalle: 'Material de limpieza',
+                    fm: '22',
+                    parcial: '',
+                    debe: '',
+                    haber: '471.98'
+                },
+                {
+                    ad: '',
+                    fecha: '',
+                    detalle: 'Por el consumo en un 25% de los materiales de limpieza.',
+                    fm: '',
+                    parcial: '',
+                    debe: '',
+                    haber: ''
+                },
+                {
+                    ad: '',
+                    fecha: '31 12 2024',
+                    detalle: '_________________AA-3________________',
+                    fm: '',
+                    parcial: '',
+                    debe: '',
+                    haber: ''
+                },
+                {
+                    ad: 'AA-3',
+                    fecha: '',
+                    detalle: 'Terrenos',
+                    fm: '3',
+                    parcial: '',
+                    debe: '12581.68',
+                    haber: ''
+                },
+                {
+                    ad: 'AA-3',
+                    fecha: '',
+                    detalle: 'Equipos de Computación',
+                    fm: '4',
+                    parcial: '778.08',
+                    debe: '',
+                    haber: ''
+                },
+                {
+                    ad: 'AA-3',
+                    fecha: '',
+                    detalle: 'Computadora de escritorio HP',
+                    fm: '',
+                    parcial: '377.45',
+                    debe: '',
+                    haber: ''
+                },
+                {
+                    ad: 'AA-3',
+                    fecha: '',
+                    detalle: 'Impresora',
+                    fm: '',
+                    parcial: '72.24',
+                    debe: '',
+                    haber: ''
+                },
+                {
+                    ad: 'AA-3',
+                    fecha: '',
+                    detalle: 'Computadoras',
+                    fm: '',
+                    parcial: '328.38',
+                    debe: '',
+                    haber: ''
+                },
+                {
+                    ad: 'AA-3',
+                    fecha: '',
+                    detalle: 'Motocicleta',
+                    fm: '21',
+                    parcial: '394.06',
+                    debe: '',
+                    haber: ''
+                },
+                {
+                    ad: 'AA-3',
+                    fecha: '',
+                    detalle: 'Motocicleta Marca Kimgp',
+                    fm: '',
+                    parcial: '394.06',
+                    debe: '',
+                    haber: ''
+                },
+                {
+                    ad: 'AA-3',
+                    fecha: '',
+                    detalle: 'Ajuste por Inflación y Tenencia de Bienes',
+                    fm: '23',
+                    parcial: '',
+                    debe: '',
+                    haber: '13753.82'
+                },
+                {
+                    ad: '',
+                    fecha: '',
+                    detalle: 'Por la actualización de activos fijos',
+                    fm: '',
+                    parcial: '',
+                    debe: '',
+                    haber: ''
+                },
+                {
+                    ad: '',
+                    fecha: '31 12 2024',
+                    detalle: '_________________AA-4________________',
+                    fm: '',
+                    parcial: '',
+                    debe: '',
+                    haber: ''
+                },
+                {
+                    ad: 'AA-4',
+                    fecha: '',
+                    detalle: 'Depreciación Equipo De Computación',
+                    fm: '24',
+                    parcial: '3945.45',
+                    debe: '',
+                    haber: ''
+                },
+                {
+                    ad: 'AA-4',
+                    fecha: '',
+                    detalle: 'Computadora de escritorio HP',
+                    fm: '',
+                    parcial: '2344.36',
+                    debe: '',
+                    haber: ''
+                },
+                {
+                    ad: 'AA-4',
+                    fecha: '',
+                    detalle: 'Impresora',
+                    fm: '',
+                    parcial: '411.32',
+                    debe: '',
+                    haber: ''
+                },
+                {
+                    ad: 'AA-4',
+                    fecha: '',
+                    detalle: 'Computadoras',
+                    fm: '',
+                    parcial: '1189.76',
+                    debe: '',
+                    haber: ''
+                },
+                {
+                    ad: 'AA-4',
+                    fecha: '',
+                    detalle: 'Depreciación Motocicleta',
+                    fm: '25',
+                    parcial: '1468.51',
+                    debe: '',
+                    haber: ''
+                },
+                {
+                    ad: 'AA-4',
+                    fecha: '',
+                    detalle: 'Depreciación Acumulada Equipo De Computación',
+                    fm: '26',
+                    parcial: '',
+                    debe: '',
+                    haber: '3945.45'
+                },
+                {
+                    ad: 'AA-4',
+                    fecha: '',
+                    detalle: 'Depreciación Acumulada Motocicleta',
+                    fm: '27',
+                    parcial: '',
+                    debe: '',
+                    haber: '1468.51'
+                },
+                {
+                    ad: '',
+                    fecha: '',
+                    detalle: 'Por la depreciación de activos fijos',
+                    fm: '',
+                    parcial: '',
+                    debe: '',
+                    haber: ''
+                },
+                {
+                    ad: '',
+                    fecha: '31 12 2024',
+                    detalle: '_________________AA-5________________',
+                    fm: '',
+                    parcial: '',
+                    debe: '',
+                    haber: ''
+                },
+                {
+                    ad: 'AA-5',
+                    fecha: '',
+                    detalle: 'Ajuste por Inflación y Tenencia de Bienes',
+                    fm: '23',
+                    parcial: '',
+                    debe: '63705.25',
+                    haber: ''
+                },
+                {
+                    ad: 'AA-5',
+                    fecha: '',
+                    detalle: 'Ajuste de capital',
+                    fm: '28',
+                    parcial: '',
+                    debe: '',
+                    haber: '63705.25'
+                },
+                {
+                    ad: '',
+                    fecha: '',
+                    detalle: 'Por la actualización de capital',
+                    fm: '',
+                    parcial: '',
+                    debe: '',
+                    haber: ''
+                },
+                {
+                    ad: '',
+                    fecha: '31 12 2024',
+                    detalle: '_________________AA-6________________',
+                    fm: '',
+                    parcial: '',
+                    debe: '',
+                    haber: ''
+                },
+                {
+                    ad: 'AA-6',
+                    fecha: '',
+                    detalle: 'Ajuste por Inflación y Tenencia de Bienes',
+                    fm: '23',
+                    parcial: '',
+                    debe: '2671.73',
+                    haber: ''
+                },
+                {
+                    ad: 'AA-6',
+                    fecha: '',
+                    detalle: 'Ajuste de capital',
+                    fm: '28',
+                    parcial: '',
+                    debe: '',
+                    haber: '2671.73'
+                },
+                {
+                    ad: '',
+                    fecha: '',
+                    detalle: 'Por la actualización de ajuste de capital',
+                    fm: '',
+                    parcial: '',
+                    debe: '',
+                    haber: ''
+                }
+            ]
+        };
+
+        // Formatear número
+        function formatCurrency(value) {
+            return Number(value || 0).toLocaleString('es-BO', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        // Validar entrada numérica
+        function validateInput(input) {
+            if (input.classList.contains('parcial') || input.classList.contains('debe') || input.classList.contains('haber')) {
+                let value = input.value.replace(/,/g, '');
+                if (value === '' || isNaN(value)) {
+                    input.value = '';
+                } else if (parseFloat(value) < 0) {
+                    input.value = '';
+                    alert('No se permiten valores negativos.');
+                } else {
+                    input.value = formatCurrency(value);
+                }
+            }
+            calculateTotals();
+            saveToLocalStorage();
+        }
+
+        // Calcular totales
+        function calculateTotals() {
+            const rows = document.querySelectorAll('#ajustes-body tr:not(.total-row)');
+            let total_debe = 0;
+            let total_haber = 0;
+
+            rows.forEach(row => {
+                total_debe += parseFloat(row.querySelector('.debe')?.value.replace(/,/g, '') || 0);
+                total_haber += parseFloat(row.querySelector('.haber')?.value.replace(/,/g, '') || 0);
+            });
+
+            document.getElementById('total-debe').textContent = formatCurrency(total_debe);
+            document.getElementById('total-haber').textContent = formatCurrency(total_haber);
+        }
+
+        // Eliminar fila
+        function deleteRow(index) {
+            if (confirm('¿Estás seguro de que deseas eliminar esta fila?')) {
+                state.items.splice(index, 1);
+                renderRows();
+                saveToLocalStorage();
+            }
+        }
+
+        // Renderizar filas de ajustes
+        function renderRows() {
+            const tbody = document.getElementById('ajustes-body');
+            tbody.innerHTML = '';
+            state.items.forEach((item, index) => {
+                const isSubItem = item.ad && !item.detalle.startsWith('__');
+                const rowHtml = `
+                    <tr class="${isSubItem ? 'sub-item' : ''}">
+                        <td><input type="text" class="ad form-control" value="${item.ad}"></td>
+                        <td><input type="text" class="fecha form-control" value="${item.fecha}"></td>
+                        <td><input type="text" class="detalle form-control" value="${item.detalle}"></td>
+                        <td><input type="text" class="fm form-control" value="${item.fm}"></td>
+                        <td><input type="text" class="parcial form-control" value="${item.parcial ? formatCurrency(item.parcial) : ''}"></td>
+                        <td><input type="text" class="debe form-control" value="${item.debe ? formatCurrency(item.debe) : ''}"></td>
+                        <td><input type="text" class="haber form-control" value="${item.haber ? formatCurrency(item.haber) : ''}"></td>
+                        <td class="no-print">
+                            <button class="btn btn-sm btn-primary" onclick="addRow('main', ${index})" title="Agregar Ajuste"><i class="fas fa-plus"></i> Ajuste</button>
+                            <button class="btn btn-sm btn-secondary" onclick="addRow('sub', ${index})" title="Agregar Sub-ítem"><i class="fas fa-plus"></i> Sub</button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteRow(${index})" title="Eliminar"><i class="fas fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+                tbody.insertAdjacentHTML('beforeend', rowHtml);
+            });
+
+            document.querySelectorAll('.ad, .fecha, .detalle, .fm, .parcial, .debe, .haber').forEach(input => {
+                input.addEventListener('input', () => validateInput(input));
+            });
+            calculateTotals();
+        }
+
+        // Agregar nueva fila
+        function addRow(type, index = null) {
+            const lastAdNumber = Math.max(...state.items.map(i => parseInt(i.ad.replace('AA-', '') || 0)), 0);
+            const newRow = {
+                ad: type === 'main' ? '' : (index !== null ? state.items[index].ad : (state.items[state.items.length - 1]?.ad || '')),
+                fecha: type === 'main' ? '31 12 2024' : '',
+                detalle: type === 'main' ? `_________________AA-${lastAdNumber + 1}________________` : '',
+                fm: '',
+                parcial: '',
+                debe: '',
+                haber: ''
+            };
+            if (index !== null) {
+                state.items.splice(index + 1, 0, newRow);
+            } else {
+                state.items.push(newRow);
+            }
+            renderRows();
+            saveToLocalStorage();
+        }
+
+        // Actualizar estado
+        function updateState() {
+            state.empresa.nombre = document.getElementById('empresa-nombre').textContent;
+            state.empresa.representante = document.getElementById('empresa-representante').textContent;
+            state.empresa.nit = document.getElementById('empresa-nit').textContent;
+            state.empresa.direccion = document.getElementById('empresa-direccion').textContent;
+            state.empresa.telefono = document.getElementById('empresa-telefono').textContent;
+            state.periodo = document.getElementById('periodo').textContent;
+
+            state.items = Array.from(document.querySelectorAll('#ajustes-body tr')).map(row => ({
+                ad: row.querySelector('.ad')?.value || '',
+                fecha: row.querySelector('.fecha')?.value || '',
+                detalle: row.querySelector('.detalle')?.value || '',
+                fm: row.querySelector('.fm')?.value || '',
+                parcial: row.querySelector('.parcial')?.value.replace(/,/g, '') || '',
+                debe: row.querySelector('.debe')?.value.replace(/,/g, '') || '',
+                haber: row.querySelector('.haber')?.value.replace(/,/g, '') || ''
+            }));
+
+            saveToLocalStorage();
+        }
+
+        // Guardar en localStorage
+        function saveToLocalStorage() {
+            localStorage.setItem('ajustesData', JSON.stringify(state));
+        }
+
+        // Cargar desde localStorage
+        function loadFromLocalStorage() {
+            const data = JSON.parse(localStorage.getItem('ajustesData'));
+            if (data) {
+                state.empresa = data.empresa;
+                state.periodo = data.periodo || state.periodo;
+                state.items = data.items;
+                document.getElementById('empresa-nombre').textContent = state.empresa.nombre;
+                document.getElementById('empresa-representante').textContent = state.empresa.representante;
+                document.getElementById('empresa-nit').textContent = state.empresa.nit;
+                document.getElementById('empresa-direccion').textContent = state.empresa.direccion;
+                document.getElementById('empresa-telefono').textContent = state.empresa.telefono;
+                document.getElementById('periodo').textContent = state.periodo;
+            }
+            renderRows();
+        }
+
+        // Render menu dynamically
+        function renderMenu() {
+            const menuList = document.getElementById('menu-list');
+            const currentPath = window.location.pathname;
+            menuList.innerHTML = menuItems.map((item, index) => `
+                <li>
+                    <a href="${item.href}" class="ripple ${currentPath.includes(item.href) ? 'active' : ''}" title="${item.label}" role="menuitem">
+                        <i class="${item.icon}"></i>${item.label}
+                    </a>
+                </li>
+            `).join('');
+        }
+
+        // Toggle sidebar for mobile
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.side_bar');
+            const body = document.body;
+            sidebar.classList.toggle('active');
+            body.classList.toggle('menu-active');
+        }
+
+        // Ripple effect for menu
+        function addRippleEffect() {
+            document.querySelectorAll('.ripple').forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const rect = this.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    const ripple = document.createElement('span');
+                    ripple.classList.add('ripple-effect');
+                    ripple.style.left = `${x}px`;
+                    ripple.style.top = `${y}px`;
+                    this.appendChild(ripple);
+                    setTimeout(() => {
+                        ripple.remove();
+                        window.location.href = this.href;
+                    }, 600);
+                });
+            });
+        }
+
+        // Imprimir
+        function printAjustes() {
+            window.print();
+        }
+
+        // Exportar a PDF
+        function exportToPDF() {
+            const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+            doc.setFontSize(12);
+            doc.text(state.empresa.nombre, 105, 10, { align: 'center' });
+            doc.setFontSize(10);
+            doc.text(state.empresa.representante, 105, 16, { align: 'center' });
+            doc.text(state.empresa.nit, 105, 22, { align: 'center' });
+            doc.text(state.empresa.direccion, 105, 28, { align: 'center' });
+            doc.text(state.empresa.telefono, 105, 34, { align: 'center' });
+            doc.setFontSize(9);
+            doc.text(state.periodo, 105, 40, { align: 'center' });
+            doc.text('(Expresado en Bolivianos)', 105, 46, { align: 'center' });
+            doc.setLineWidth(0.2);
+            doc.line(10, 50, 200, 50);
+            doc.setFontSize(11);
+            doc.text('AJUSTES', 105, 56, { align: 'center' });
+            doc.line(10, 58, 200, 58);
+
+            doc.autoTable({
+                html: '.ajustes-table',
+                startY: 62,
+                margin: { left: 10, right: 10 },
+                theme: 'grid',
+                styles: { fontSize: 6.5, cellPadding: 1.5, textColor: [0, 0, 0], lineWidth: 0.2, lineColor: [0, 0, 0] },
+                headStyles: { fillColor: [224, 224, 224], textColor: [0, 0, 0], fontStyle: 'bold' },
+                alternateRowStyles: { fillColor: [248, 249, 250] },
+                columnStyles: {
+                    0: { halign: 'left', cellWidth: 15 },
+                    1: { halign: 'left', cellWidth: 20 },
+                    2: { halign: 'left', cellWidth: 60 },
+                    3: { halign: 'center', cellWidth: 15 },
+                    4: { halign: 'right', cellWidth: 20 },
+                    5: { halign: 'right', cellWidth: 20 },
+                    6: { halign: 'right', cellWidth: 20 },
+                    7: { halign: 'right', cellWidth: 0 }
+                },
+                didParseCell: (data) => {
+                    if (data.row.section === 'body' && data.cell.raw.classList?.contains('sub-item')) {
+                        data.cell.styles.cellPadding = { left: 5, right: 1.5, top: 1.5, bottom: 1.5 };
+                    }
+                }
+            });
+
+            doc.setFontSize(8);
+            doc.text('Sistema de Contabilidad - Versión 1.0.0', 200, 280, { align: 'right' });
+            doc.save('Ajustes.pdf');
+        }
+
+        // Exportar a Excel
+        function exportToExcel() {
+            const wb = XLSX.utils.book_new();
+            const wsData = [
+                [state.empresa.nombre],
+                [state.empresa.representante],
+                [state.empresa.nit],
+                [state.empresa.direccion],
+                [state.empresa.telefono],
+                [],
+                ['AJUSTES'],
+                [state.periodo],
+                ['(Expresado en Bolivianos)'],
+                [],
+                ['AD', 'FECHA', 'DETALLE', 'F/M', 'PARCIAL', 'DEBE', 'HABER']
+            ];
+
+            document.querySelectorAll('#ajustes-body tr').forEach(row => {
+                const cells = Array.from(row.querySelectorAll('td')).map(td => td.querySelector('input')?.value || '');
+                wsData.push(cells.slice(0, 7));
+            });
+
+            wsData.push(['', '', 'TOTALES', '', '', 
+                document.getElementById('total-debe').textContent.replace(/,/g, ''),
+                document.getElementById('total-haber').textContent.replace(/,/g, '')
+            ]);
+
+            const ws = XLSX.utils.aoa_to_sheet(wsData);
+            XLSX.utils.book_append_sheet(wb, ws, 'Ajustes');
+            XLSX.writeFile(wb, 'Ajustes.xlsx');
+        }
+
+        // Importar desde Excel
+        document.getElementById('import-excel').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                const json = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+
+                state.empresa.nombre = json[0][0] || state.empresa.nombre;
+                state.empresa.representante = json[1][0] || state.empresa.representante;
+                state.empresa.nit = json[2][0] || state.empresa.nit;
+                state.empresa.direccion = json[3][0] || state.empresa.direccion;
+                state.empresa.telefono = json[4][0] || state.empresa.telefono;
+                state.periodo = json[7][0] || state.periodo;
+
+                document.getElementById('empresa-nombre').textContent = state.empresa.nombre;
+                document.getElementById('empresa-representante').textContent = state.empresa.representante;
+                document.getElementById('empresa-nit').textContent = state.empresa.nit;
+                document.getElementById('empresa-direccion').textContent = state.empresa.direccion;
+                document.getElementById('empresa-telefono').textContent = state.empresa.telefono;
+                document.getElementById('periodo').textContent = state.periodo;
+
+                state.items = [];
+                json.slice(10).forEach(row => {
+                    if (row[0] || row[2]) {
+                        const item = {
+                            ad: row[0] || '',
+                            fecha: row[1] || '',
+                            detalle: row[2] || '',
+                            fm: row[3] || '',
+                            parcial: row[4] ? parseFloat(row[4]).toFixed(2) : '',
+                            debe: row[5] ? parseFloat(row[5]).toFixed(2) : '',
+                            haber: row[6] ? parseFloat(row[6]).toFixed(2) : ''
+                        };
+                        state.items.push(item);
+                    }
+                });
+
+                renderRows();
+                saveToLocalStorage();
+            };
+            reader.readAsArrayBuffer(file);
+        });
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            renderMenu();
+            addRippleEffect();
+            document.querySelector('.menu-toggle').addEventListener('click', toggleSidebar);
+            document.querySelectorAll('.menu a').forEach(link => {
+                link.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        link.click();
+                    }
+                });
+            });
+            document.getElementById('periodo').addEventListener('blur', updateState);
+            document.querySelectorAll('.editable').forEach(elem => {
+                elem.addEventListener('blur', updateState);
+            });
+            loadFromLocalStorage();
+        });
+    </script>
+</body>
+</html>

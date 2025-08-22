@@ -1,0 +1,1146 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Contabilidad - Hoja de 10 Columnas</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #1a73e8;
+            --secondary-color: #34a853;
+            --text-color: #2c3e50;
+            --light-bg: #f8f9fa;
+            --menu-hover: #f5f7fa;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            --table-header-bg: #e3f2fd;
+            --table-row-alt: #f9fafb;
+            --hornos-accent: #e3f2fd;
+            --cocinas-accent: #e8f5e9;
+            --highlight-blue: #bbdefb;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        body {
+            background: var(--light-bg);
+            min-height: 100vh;
+            margin-left: 300px;
+            padding: 20px;
+            transition: margin-left var(--transition);
+        }
+
+        .side_bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 300px;
+            height: 100vh;
+            background: white;
+            padding: 20px 0;
+            box-shadow: var(--shadow);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            transition: transform var(--transition);
+        }
+
+        .side_bar .title {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            margin-bottom: 10px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .side_bar .title .logo {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--primary-color);
+            letter-spacing: 0.5px;
+            text-align: center;
+        }
+
+        .side_bar .menu {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0 15px;
+        }
+
+        .side_bar .menu::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .side_bar .menu::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 4px;
+        }
+
+        .side_bar .menu::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .side_bar ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .side_bar ul li {
+            margin: 5px 0;
+            position: relative;
+        }
+
+        .side_bar ul a {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--text-color);
+            text-decoration: none;
+            border-radius: 8px;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .side_bar ul a:hover {
+            background-color: var(--menu-hover);
+            color: var(--primary-color);
+            transform: translateX(5px);
+        }
+
+        .side_bar ul a.active {
+            background: linear-gradient(90deg, var(--primary-color), #60a5fa);
+            color: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .side_bar ul a.active i {
+            color: white;
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .side_bar ul i {
+            margin-right: 12px;
+            font-size: 16px;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            transition: var(--transition);
+        }
+
+        .side_bar ul li:nth-child(1) i { background-color: #4CAF50; color: white; }
+        .side_bar ul li:nth-child(2) i { background-color: #2196F3; color: white; }
+        .side_bar ul li:nth-child(3) i { background-color: #FF9800; color: white; }
+        .side_bar ul li:nth-child(4) i { background-color: #9C27B0; color: white; }
+        .side_bar ul li:nth-child(5) i { background-color: #607D8B; color: white; }
+        .side_bar ul li:nth-child(6) i { background-color: #F44336; color: white; }
+        .side_bar ul li:nth-child(7) i { background-color: #795548; color: white; }
+        .side_bar ul li:nth-child(8) i { background-color: #00BCD4; color: white; }
+        .side_bar ul li:nth-child(9) i { background-color: #8BC34A; color: white; }
+        .side_bar ul li:nth-child(10) i { background-color: #3F51B5; color: white; }
+        .side_bar ul li:nth-child(11) i { background-color: #009688; color: white; }
+        .side_bar ul li:nth-child(12) i { background-color: #E91E63; color: white; }
+        .side_bar ul li:nth-child(13) i { background-color: #CDDC39; color: #333; }
+        .side_bar ul li:nth-child(14) i { background-color: #FF5722; color: white; }
+        .side_bar ul li:nth-child(15) i { background-color: #673AB7; color: white; }
+        .side_bar ul li:nth-child(16) i { background-color: #333; color: white; }
+
+        .side_bar .footer {
+            padding: 15px;
+            text-align: center;
+            margin-top: auto;
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+            font-size: 0.85rem;
+            color: var(--text-color);
+        }
+
+        .ripple-effect {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.4);
+            transform: scale(0);
+            animation: ripple 0.6s linear;
+            pointer-events: none;
+        }
+
+        @keyframes ripple {
+            to {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+
+        .menu-toggle {
+            display: none;
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            z-index: 1100;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 20px;
+            cursor: pointer;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+
+        .menu-toggle:hover {
+            background: #1557b0;
+        }
+
+        @media (max-width: 992px) {
+            body {
+                margin-left: 0;
+            }
+
+            .side_bar {
+                transform: translateX(-100%);
+                width: 250px;
+            }
+
+            .side_bar.active {
+                transform: translateX(0);
+            }
+
+            body.menu-active {
+                margin-left: 250px;
+            }
+
+            .menu-toggle {
+                display: block;
+            }
+
+            .worksheet-table {
+                font-size: 0.8rem;
+            }
+
+            .worksheet-table th, .worksheet-table td {
+                padding: 6px;
+            }
+        }
+
+        @media print {
+            @page {
+                size: A4 landscape;
+                margin: 10mm;
+            }
+
+            body {
+                margin: 0;
+                background: white;
+                font-size: 8pt;
+                padding: 0;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            .side_bar, .action-buttons, .no-print, .header, .menu-toggle {
+                display: none !important;
+            }
+
+            #print-header {
+                display: block;
+                text-align: center;
+                margin-bottom: 5mm;
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                padding: 5mm 10mm 0;
+                font-size: 9pt;
+            }
+
+            #print-header h4 {
+                font-size: 11pt;
+                font-weight: bold;
+                margin-bottom: 2mm;
+            }
+
+            #print-header p {
+                margin: 1mm 0;
+                font-size: 7pt;
+            }
+
+            #print-header .print-document-title {
+                font-size: 9pt;
+                font-weight: bold;
+                text-transform: uppercase;
+                margin: 3mm 0;
+                border-top: 0.5pt solid #000;
+                border-bottom: 0.5pt solid #000;
+                padding: 2mm 0;
+            }
+
+            .main-content, .worksheet-container {
+                padding: 0;
+                margin: 0;
+                max-width: 100%;
+                width: 100%;
+                box-shadow: none;
+                border-radius: 0;
+            }
+
+            .worksheet-table {
+                width: 100% !important;
+                font-size: 7.5pt;
+                border: 0.5pt solid #000;
+                border-collapse: collapse;
+                margin-bottom: 3mm;
+            }
+
+            .worksheet-table th, .worksheet-table td {
+                border: 0.5pt solid #000;
+                padding: 2mm !important;
+                vertical-align: middle;
+            }
+
+            .worksheet-table th {
+                background-color: #e3f2fd !important;
+                font-weight: bold;
+                text-align: center;
+                color: #000;
+            }
+
+            .worksheet-table .total-row, .worksheet-table .ganancia-row, .worksheet-table .final-total-row {
+                background-color: var(--highlight-blue) !important;
+                font-weight: bold;
+            }
+
+            .worksheet-table td:first-child, .worksheet-table td:nth-child(2) {
+                text-align: left;
+            }
+
+            .worksheet-table input {
+                border: none;
+                background: transparent;
+                padding: 0;
+                text-align: right;
+                outline: none;
+                font-size: 7.5pt;
+                width: 100%;
+            }
+
+            .worksheet-table .ajuste-haber {
+                min-width: 80px !important;
+            }
+        }
+
+        .main-content {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background-color: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            margin-bottom: 20px;
+        }
+
+        .company-info h4 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--text-color);
+            margin-bottom: 5px;
+        }
+
+        .company-info p {
+            font-size: 0.9rem;
+            color: var(--text-color);
+            margin: 2px 0;
+        }
+
+        .document-title {
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin: 15px 0;
+            color: var(--text-color);
+            text-transform: uppercase;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 5px;
+        }
+
+        .action-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+   .action-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    margin-bottom: 20px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--light-bg);
+    padding: 10px;
+}
+        .btn-action {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 8px 15px;
+            border-radius: 6px;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+
+        .btn-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .worksheet-container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            padding: 20px;
+            overflow-x: auto;
+        }
+
+        .worksheet-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            font-size: 0.95rem;
+            margin-bottom: 30px;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .worksheet-table th {
+            background-color: var(--table-header-bg);
+            text-align: center;
+            padding: 12px 10px;
+            border-bottom: 2px solid #bbdefb;
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--text-color);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .worksheet-table td {
+            padding: 10px 10px;
+            border-bottom: 1px solid #eceff1;
+            vertical-align: middle;
+            text-align: right;
+            transition: background-color 0.2s;
+        }
+
+        .worksheet-table tr:hover {
+            background-color: #f1f8ff;
+        }
+
+        .worksheet-table td:first-child, .worksheet-table td:nth-child(2) {
+            text-align: left;
+        }
+
+        .worksheet-table .total-row, .worksheet-table .ganancia-row, .worksheet-table .final-total-row {
+            font-weight: bold;
+            background-color: var(--highlight-blue);
+            border-top: 2px dashed #bbdefb;
+            padding: 12px 10px;
+        }
+
+        .worksheet-table input {
+            width: 100%;
+            min-width: 100px;
+            padding: 6px 8px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            text-align: right;
+            transition: border-color 0.2s;
+        }
+
+        .worksheet-table input:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.2);
+        }
+
+        .worksheet-table .editable:hover {
+            background-color: #e8f0fe;
+            outline: 1px dashed var(--primary-color);
+            cursor: text;
+        }
+
+        .worksheet-table .no-print button {
+            padding: 5px;
+            font-size: 0.8rem;
+        }
+
+        .worksheet-table .no-print button:hover {
+            transform: scale(1.1);
+        }
+
+        .worksheet-table .ajuste-haber {
+            min-width: 120px;
+        }
+
+        .worksheet-table .saldo-deudor, .worksheet-table .saldo-acreedor,
+        .worksheet-table .ajuste-debe, .worksheet-table .saldo-ajustado-deudor,
+        .worksheet-table .saldo-ajustado-acreedor, .worksheet-table .egreso,
+        .worksheet-table .ingreso, .worksheet-table .activo, .worksheet-table .pasivo {
+            min-width: 100px;
+        }
+    </style>
+</head>
+<body>
+    <button class="menu-toggle" aria-label="Toggle menu" title="Toggle menu">
+        <i class="fas fa-bars"></i>
+    </button>
+    <div class="side_bar">
+        <div class="title">
+            <div class="logo">Sistema de Contabilidad</div>
+        </div>
+        <div class="menu">
+            <ul id="menu-list"></ul>
+        </div>
+        <div class="footer">
+            <p>Versión 1.0.0</p>
+        </div>
+    </div>
+
+    <div id="print-header" style="display: none;">
+        <h4 id="print-empresa-nombre">Empresa: LOS TRAVIESOS</h4>
+        <p id="print-empresa-representante">De: Sr. Juan Marcelo Martínez Mamani</p>
+        <p id="print-empresa-nit">NIT: 568791012</p>
+        <p id="print-empresa-direccion">Calle Marineros esquina Caballeros Nº 245</p>
+        <p id="print-empresa-telefono">Telf.: 4571022 Punata</p>
+        <p class="print-document-title">HOJA DE 10 COLUMNAS</p>
+        <p id="print-empresa-telefono">31 de Diciembre 2025</p>
+        
+    </div>
+
+    <div class="main-content">
+        <div class="header">
+            <div class="company-info">
+                <h4 class="editable" contenteditable="true" id="empresa-nombre">Empresa: LOS TRAVIESOS</h4>
+                <p class="editable" contenteditable="true" id="empresa-representante">De: Sr. Juan Marcelo Martínez Mamani</p>
+                <p class="editable" contenteditable="true" id="empresa-nit">NIT: 568791012</p>
+                <p class="editable" contenteditable="true" id="empresa-direccion">Calle Marineros esquina Caballeros Nº 245</p>
+                <p class="editable" contenteditable="true" id="empresa-telefono">Telf.: 4571022 Punata</p>
+                <p class="editable" contenteditable="true" id="empresa-telefono">31 de Diciembre 2024</p>
+            </div>
+            <div class="document-title">HOJA DE 10 COLUMNAS</div>
+        </div>
+
+        <div class="action-buttons">
+            <button class="btn btn-primary btn-action" onclick="addRow()"><i class="fas fa-plus"></i> Agregar Fila</button>
+            <button class="btn btn-success btn-action" onclick="document.getElementById('import-excel').click()"><i class="fas fa-file-import"></i> Importar Excel</button>
+
+            <button class="btn btn-danger btn-action" onclick="exportToPDF()"><i class="fas fa-file-pdf"></i> PDF</button>
+            <button class="btn btn-success btn-action" onclick="exportToExcel()"><i class="fas fa-file-excel"></i> Excel</button>
+        </div>
+        <input type="file" id="import-excel" style="display: none;" accept=".xlsx, .xls">
+
+        <div class="worksheet-container" id="worksheet-container">
+            <table class="worksheet-table table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Nro</th>
+                        <th>Cuentas</th>
+                        <th colspan="2">Saldos</th>
+                        <th colspan="2">Ajustes</th>
+                        <th colspan="2">Saldos Ajustados</th>
+                        <th colspan="2">Estado de Resultados</th>
+                        <th colspan="2">Balance General</th>
+                        <th class="no-print"></th>
+                    </tr>
+                    <tr>
+                        <th></th>
+                        <th></th>
+                        <th>Deudor</th>
+                        <th>Acreedor</th>
+                        <th>Debe</th>
+                        <th>Haber</th>
+                        <th>Deudor</th>
+                        <th>Acreedor</th>
+                        <th>Egreso</th>
+                        <th>Ingreso</th>
+                        <th>Activo</th>
+                        <th>Pasivo</th>
+                        <th class="no-print"></th>
+                    </tr>
+                </thead>
+                <tbody id="worksheet-body">
+                    <!-- Filas generadas dinámicamente -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const { jsPDF } = window.jspdf;
+
+                // Menú dinámico
+        const menuItems = [
+            { label: '1. Balance de Apertura', href: '../1.Balance de Apertura/index.html', icon: 'fas fa-file-invoice-dollar' },
+            { label: '2. Libro Diario', href: '../2.libro diario/index.html', icon: 'fas fa-book-journal-whills' },
+            { label: '3. Cálculos Auxiliares Compras', href: '../3.Calculos Auxiliares Compras/index.html', icon: 'fas fa-calculator' },
+            { label: '4. Cálculos Auxiliares Ventas', href: '../4.CALCULOS AUXILIARES VENTAS/index.html', icon: 'fas fa-calculator' },
+            { label: '5. Otros Cálculos Auxiliares', href: '../5.Otros CALCULOS AUXILIARES/index.html', icon: 'fas fa-calculator' },
+            { label: '6. Liquidación Impuestos LM', href: '../6.LIQUIDACIÓN IMPUESTOS LM/index.html', icon: 'fas fa-file-invoice' },
+            { label: '7. Kardex', href: '../7.Kardexs/index.html', icon: 'fas fa-boxes-stacked' },
+            { label: '8. Libro Mayor', href: '../8.Libro Mayor/index.html', icon: 'fas fa-book' },
+            { label: '9. BCSS', href: '../9.BCSS/index.html', icon: 'fas fa-balance-scale' },
+            { label: '10. Act. Fijos', href: '../10.fijos/index.html', icon: 'fas fa-building-columns' },
+            { label: '11. Act. Patrimonio', href: '../11.patrimonio/index.html', icon: 'fas fa-landmark' },
+            { label: '12. Ajustes', href: '../12.Ajustes/index.html', icon: 'fas fa-sliders' },
+            { label: '13. Hoja de 10 Columnas', href: '../13.hoja/index.html', icon: 'fas fa-table' },
+            { label: '14. Estado de Resultados', href: '../14.ESTADO DE RESULTADOS/index.html', icon: 'fas fa-chart-line' },
+            { label: '15. Balance General', href: '../15.BALANCE GENERAL/index.html', icon: 'fas fa-chart-pie' },
+            { label: '16. Cerrar', href: '../../inicio/index.html', icon: 'fas fa-power-off' }
+        ];
+
+        // Render menu dynamically
+        function renderMenu() {
+            const menuList = document.getElementById('menu-list');
+            const currentPath = window.location.pathname;
+            menuList.innerHTML = menuItems.map((item, index) => `
+                <li>
+                    <a href="${item.href}" class="ripple ${currentPath.includes(item.href) ? 'active' : ''}" title="${item.label}" role="menuitem">
+                        <i class="${item.icon}"></i>${item.label}
+                    </a>
+                </li>
+            `).join('');
+        }
+
+        // Efecto ripple para el menú
+        function addRippleEffect() {
+            document.querySelectorAll('.ripple').forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const rect = this.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    const ripple = document.createElement('span');
+                    ripple.classList.add('ripple-effect');
+                    ripple.style.left = `${x}px`;
+                    ripple.style.top = `${y}px`;
+                    this.appendChild(ripple);
+                    setTimeout(() => {
+                        ripple.remove();
+                        window.location.href = this.href;
+                    }, 600);
+                });
+            });
+        }
+
+        // Toggle sidebar for mobile
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.side_bar');
+            const body = document.body;
+            sidebar.classList.toggle('active');
+            body.classList.toggle('menu-active');
+        }
+
+        // Estado inicial con datos de la Hoja de 10 Columnas
+        const state = {
+            empresa: {
+                nombre: 'Empresa: LOS TRAVIESOS',
+                representante: 'De: Sr. Juan Marcelo Martínez Mamani',
+                nit: 'NIT: 568791012',
+                direccion: 'Calle Marineros esquina Caballeros Nº 245',
+                telefono: 'Telf.: 4571022 Punata'
+            },
+            items: [
+                { nro: 1, cuenta: 'Caja Moneda Nacional', saldoDeudor: 1214551.72, saldoAcreedor: 0.00, ajusteDebe: 708.62, ajusteHaber: 0.00, saldoAjustadoDeudor: 1215260.34, saldoAjustadoAcreedor: 0.00, egreso: 0.00, ingreso: 0.00, activo: 1215260.34, pasivo: 0.00 },
+                { nro: 2, cuenta: 'Banco Moneda Nacional', saldoDeudor: 34940.00, saldoAcreedor: 0.00, ajusteDebe: 0.00, ajusteHaber: 0.00, saldoAjustadoDeudor: 34940.00, saldoAjustadoAcreedor: 0.00, egreso: 0.00, ingreso: 0.00, activo: 34940.00, pasivo: 0.00 },
+                { nro: 3, cuenta: 'Terreno', saldoDeudor: 300000.00, saldoAcreedor: 0.00, ajusteDebe: 12581.68, ajusteHaber: 0.00, saldoAjustadoDeudor: 312581.68, saldoAjustadoAcreedor: 0.00, egreso: 0.00, ingreso: 0.00, activo: 312581.68, pasivo: 0.00 },
+                { nro: 4, cuenta: 'Equipo de computacion', saldoDeudor: 18552.60, saldoAcreedor: 0.00, ajusteDebe: 778.08, ajusteHaber: 0.00, saldoAjustadoDeudor: 19330.68, saldoAjustadoAcreedor: 0.00, egreso: 0.00, ingreso: 0.00, activo: 19330.68, pasivo: 0.00 },
+                { nro: 5, cuenta: 'Capital Social', saldoDeudor: 0.00, saldoAcreedor: 1519000.00, ajusteDebe: 0.00, ajusteHaber: 0.00, saldoAjustadoDeudor: 0.00, saldoAjustadoAcreedor: 1519000.00, egreso: 0.00, ingreso: 0.00, activo: 0.00, pasivo: 1519000.00 },
+                { nro: 6, cuenta: 'Almacen de mercaderia', saldoDeudor: 65598.00, saldoAcreedor: 0.00, ajusteDebe: 0.00, ajusteHaber: 0.00, saldoAjustadoDeudor: 65598.00, saldoAjustadoAcreedor: 0.00, egreso: 0.00, ingreso: 0.00, activo: 65598.00, pasivo: 0.00 },
+                { nro: 7, cuenta: 'Credito Fiscal- IVA', saldoDeudor: 3911.75, saldoAcreedor: 0.00, ajusteDebe: 0.00, ajusteHaber: 0.00, saldoAjustadoDeudor: 3911.75, saldoAjustadoAcreedor: 0.00, egreso: 0.00, ingreso: 0.00, activo: 3911.75, pasivo: 0.00 },
+                { nro: 8, cuenta: 'Impuesto a las transacciones', saldoDeudor: 0.00, saldoAcreedor: 0.00, ajusteDebe: 0.00, ajusteHaber: 0.00, saldoAjustadoDeudor: 0.00, saldoAjustadoAcreedor: 0.00, egreso: 0.00, ingreso: 0.00, activo: 0.00, pasivo: 0.00 },
+                { nro: 9, cuenta: 'Ventas', saldoDeudor: 0.00, saldoAcreedor: 830502.00, ajusteDebe: 0.00, ajusteHaber: 0.00, saldoAjustadoDeudor: 0.00, saldoAjustadoAcreedor: 830502.00, egreso: 0.00, ingreso: 830502.00, activo: 0.00, pasivo: 0.00 },
+                { nro: 10, cuenta: 'Debito Fiscal IVA', saldoDeudor: 0.00, saldoAcreedor: 0.00, ajusteDebe: 0.00, ajusteHaber: 0.00, saldoAjustadoDeudor: 0.00, saldoAjustadoAcreedor: 0.00, egreso: 0.00, ingreso: 0.00, activo: 0.00, pasivo: 0.00 },
+                { nro: 11, cuenta: 'IT por pagar', saldoDeudor: 0.00, saldoAcreedor: 0.00, ajusteDebe: 0.00, ajusteHaber: 0.00, saldoAjustadoDeudor: 0.00, saldoAjustadoAcreedor: 0.00, egreso: 0.00, ingreso: 0.00, activo: 0.00, pasivo: 0.00 },
+                { nro: 12, cuenta: 'Costo de Ventas', saldoDeudor: 750375.00, saldoAcreedor: 0.00, ajusteDebe: 0.00, ajusteHaber: 0.00, saldoAjustadoDeudor: 750375.00, saldoAjustadoAcreedor: 0.00, egreso: 750375.00, ingreso: 0.00, activo: 0.00, pasivo: 0.00 },
+                { nro: 13, cuenta: 'Anticipo por publicidad', saldoDeudor: 16356.00, saldoAcreedor: 0.00, ajusteDebe: 0.00, ajusteHaber: 0.00, saldoAjustadoDeudor: 16356.00, saldoAjustadoAcreedor: 0.00, egreso: 0.00, ingreso: 0.00, activo: 16356.00, pasivo: 0.00 },
+                { nro: 14, cuenta: 'Material de oficina', saldoDeudor: 591.60, saldoAcreedor: 0.00, ajusteDebe: 0.00, ajusteHaber: 236.64, saldoAjustadoDeudor: 354.96, saldoAjustadoAcreedor: 0.00, egreso: 354.96, ingreso: 0.00, activo: 0.00, pasivo: 0.00 },
+                { nro: 15, cuenta: 'Cuentas por pagar', saldoDeudor: 0.00, saldoAcreedor: 69582.12, ajusteDebe: 0.00, ajusteHaber: 0.00, saldoAjustadoDeudor: 0.00, saldoAjustadoAcreedor: 69582.12, egreso: 0.00, ingreso: 0.00, activo: 0.00, pasivo: 69582.12 },
+                { nro: 16, cuenta: 'Descuento en compras', saldoDeudor: 0.00, saldoAcreedor: 10004.65, ajusteDebe: 0.00, ajusteHaber: 0.00, saldoAjustadoDeudor: 0.00, saldoAjustadoAcreedor: 10004.65, egreso: 0.00, ingreso: 10004.65, activo: 0.00, pasivo: 0.00 },
+                { nro: 17, cuenta: 'Servicios Básicos', saldoDeudor: 3775.80, saldoAcreedor: 0.00, ajusteDebe: 0.00, ajusteHaber: 0.00, saldoAjustadoDeudor: 3775.80, saldoAjustadoAcreedor: 0.00, egreso: 3775.80, ingreso: 0.00, activo: 0.00, pasivo: 0.00 },
+                { nro: 18, cuenta: 'Aparatos telefónicos', saldoDeudor: 2827.50, saldoAcreedor: 0.00, ajusteDebe: 0.00, ajusteHaber: 0.00, saldoAjustadoDeudor: 2827.50, saldoAjustadoAcreedor: 0.00, egreso: 2827.50, ingreso: 0.00, activo: 0.00, pasivo: 0.00 },
+                { nro: 19, cuenta: 'Servicio Telefónico COMTECO', saldoDeudor: 5019.90, saldoAcreedor: 0.00, ajusteDebe: 0.00, ajusteHaber: 0.00, saldoAjustadoDeudor: 5019.90, saldoAjustadoAcreedor: 0.00, egreso: 5019.90, ingreso: 0.00, activo: 0.00, pasivo: 0.00 },
+                { nro: 20, cuenta: 'Software de contabilidad', saldoDeudor: 1305.00, saldoAcreedor: 0.00, ajusteDebe: 0.00, ajusteHaber: 0.00, saldoAjustadoDeudor: 1305.00, saldoAjustadoAcreedor: 0.00, egreso: 1305.00, ingreso: 0.00, activo: 0.00, pasivo: 0.00 },
+                { nro: 21, cuenta: 'Motocicleta', saldoDeudor: 9396.00, saldoAcreedor: 0.00, ajusteDebe: 394.06, ajusteHaber: 0.00, saldoAjustadoDeudor: 9790.06, saldoAjustadoAcreedor: 0.00, egreso: 0.00, ingreso: 0.00, activo: 9790.06, pasivo: 0.00 },
+                { nro: 22, cuenta: 'Material de limpieza', saldoDeudor: 1887.90, saldoAcreedor: 0.00, ajusteDebe: 0.00, ajusteHaber: 471.98, saldoAjustadoDeudor: 1415.93, saldoAjustadoAcreedor: 0.00, egreso: 1415.93, ingreso: 0.00, activo: 0.00, pasivo: 0.00 },
+                { nro: 23, cuenta: 'Ajuste por Inflación y Tenencia de Bienes', saldoDeudor: 0.00, saldoAcreedor: 0.00, ajusteDebe: 66376.98, ajusteHaber: 13753.82, saldoAjustadoDeudor: 52623.16, saldoAjustadoAcreedor: 0.00, egreso: 52623.16, ingreso: 0.00, activo: 0.00, pasivo: 0.00 },
+                { nro: 24, cuenta: 'Depreciación Equipo De Computación', saldoDeudor: 0.00, saldoAcreedor: 0.00, ajusteDebe: 3945.45, ajusteHaber: 0.00, saldoAjustadoDeudor: 3945.45, saldoAjustadoAcreedor: 0.00, egreso: 3945.45, ingreso: 0.00, activo: 0.00, pasivo: 0.00 },
+                { nro: 25, cuenta: 'Depreciación Motocicleta', saldoDeudor: 0.00, saldoAcreedor: 0.00, ajusteDebe: 1468.51, ajusteHaber: 0.00, saldoAjustadoDeudor: 1468.51, saldoAjustadoAcreedor: 0.00, egreso: 1468.51, ingreso: 0.00, activo: 0.00, pasivo: 0.00 },
+                { nro: 26, cuenta: 'Depreciación Acumulada Equipo De Computación', saldoDeudor: 0.00, saldoAcreedor: 0.00, ajusteDebe: 0.00, ajusteHaber: 3945.45, saldoAjustadoDeudor: 0.00, saldoAjustadoAcreedor: 3945.45, egreso: 0.00, ingreso: 0.00, activo: 0.00, pasivo: 3945.45 },
+                { nro: 27, cuenta: 'Depreciación Acumulada Motocicleta', saldoDeudor: 0.00, saldoAcreedor: 0.00, ajusteDebe: 0.00, ajusteHaber: 1468.51, saldoAjustadoDeudor: 0.00, saldoAjustadoAcreedor: 1468.51, egreso: 0.00, ingreso: 0.00, activo: 0.00, pasivo: 1468.51 },
+                { nro: 28, cuenta: 'Ajuste de capital', saldoDeudor: 0.00, saldoAcreedor: 0.00, ajusteDebe: 0.00, ajusteHaber: 66376.98, saldoAjustadoDeudor: 0.00, saldoAjustadoAcreedor: 66376.98, egreso: 0.00, ingreso: 0.00, activo: 0.00, pasivo: 66376.98 }
+            ]
+        };
+
+        // Formatear número
+        function formatCurrency(value) {
+            return Number(value || 0).toLocaleString('es-BO', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        // Calcular totales
+        function calculateTotals() {
+            const tbody = document.getElementById('worksheet-body');
+            const rows = tbody.querySelectorAll('tr:not(.total-row):not(.ganancia-row):not(.final-total-row)');
+            let totalSaldoDeudor = 0, totalSaldoAcreedor = 0;
+            let totalAjusteDebe = 0, totalAjusteHaber = 0;
+            let totalSaldoAjustadoDeudor = 0, totalSaldoAjustadoAcreedor = 0;
+            let totalEgreso = 0, totalIngreso = 0;
+            let totalActivo = 0, totalPasivo = 0;
+
+            rows.forEach(row => {
+                const saldoDeudor = parseFloat(row.querySelector('.saldo-deudor').value) || 0;
+                const saldoAcreedor = parseFloat(row.querySelector('.saldo-acreedor').value) || 0;
+                const ajusteDebe = parseFloat(row.querySelector('.ajuste-debe').value) || 0;
+                const ajusteHaber = parseFloat(row.querySelector('.ajuste-haber').value) || 0;
+
+                const saldoAjustadoDeudor = saldoDeudor + ajusteDebe;
+                const saldoAjustadoAcreedor = saldoAcreedor + ajusteHaber;
+
+                row.querySelector('.saldo-ajustado-deudor').textContent = formatCurrency(saldoAjustadoDeudor);
+                row.querySelector('.saldo-ajustado-acreedor').textContent = formatCurrency(saldoAjustadoAcreedor);
+
+                const egreso = parseFloat(row.querySelector('.egreso').value) || 0;
+                const ingreso = parseFloat(row.querySelector('.ingreso').value) || 0;
+                const activo = parseFloat(row.querySelector('.activo').value) || 0;
+                const pasivo = parseFloat(row.querySelector('.pasivo').value) || 0;
+
+                totalSaldoDeudor += saldoDeudor;
+                totalSaldoAcreedor += saldoAcreedor;
+                totalAjusteDebe += ajusteDebe;
+                totalAjusteHaber += ajusteHaber;
+                totalSaldoAjustadoDeudor += saldoAjustadoDeudor;
+                totalSaldoAjustadoAcreedor += saldoAjustadoAcreedor;
+                totalEgreso += egreso;
+                totalIngreso += ingreso;
+                totalActivo += activo;
+                totalPasivo += pasivo;
+            });
+
+            const ganancia = totalIngreso - totalEgreso;
+            const gananciaRow = tbody.querySelector('.ganancia-row');
+            if (gananciaRow) {
+                gananciaRow.querySelector('.egreso').textContent = formatCurrency(ganancia);
+                gananciaRow.querySelector('.activo').textContent = formatCurrency(ganancia);
+            }
+
+            const totalRow = tbody.querySelector('.total-row');
+            totalRow.querySelector('.saldo-deudor').textContent = formatCurrency(totalSaldoDeudor);
+            totalRow.querySelector('.saldo-acreedor').textContent = formatCurrency(totalSaldoAcreedor);
+            totalRow.querySelector('.ajuste-debe').textContent = formatCurrency(totalAjusteDebe);
+            totalRow.querySelector('.ajuste-haber').textContent = formatCurrency(totalAjusteHaber);
+            totalRow.querySelector('.saldo-ajustado-deudor').textContent = formatCurrency(totalSaldoAjustadoDeudor);
+            totalRow.querySelector('.saldo-ajustado-acreedor').textContent = formatCurrency(totalSaldoAjustadoAcreedor);
+            totalRow.querySelector('.egreso').textContent = formatCurrency(totalEgreso);
+            totalRow.querySelector('.ingreso').textContent = formatCurrency(totalIngreso);
+            totalRow.querySelector('.activo').textContent = formatCurrency(totalActivo);
+            totalRow.querySelector('.pasivo').textContent = formatCurrency(totalPasivo);
+
+            const finalTotalRow = tbody.querySelector('.final-total-row');
+            finalTotalRow.querySelector('.egreso').textContent = formatCurrency(totalEgreso + ganancia);
+            finalTotalRow.querySelector('.ingreso').textContent = formatCurrency(totalIngreso);
+            finalTotalRow.querySelector('.activo').textContent = formatCurrency(totalActivo + ganancia);
+            finalTotalRow.querySelector('.pasivo').textContent = formatCurrency(totalPasivo);
+        }
+
+        // Validar entrada numérica
+        function validateInput(input) {
+            if (input.value === '' || isNaN(input.value)) {
+                input.value = '0.00';
+            } else if (parseFloat(input.value) < 0) {
+                input.value = '0.00';
+                alert('No se permiten valores negativos.');
+            }
+            calculateTotals();
+            saveToLocalStorage();
+        }
+
+        // Renderizar tabla
+        function renderTable() {
+            const tbody = document.getElementById('worksheet-body');
+            tbody.innerHTML = '';
+            state.items.forEach((item, index) => {
+                const rowHtml = `
+                    <tr>
+                        <td class="editable" contenteditable="true">${item.nro}</td>
+                        <td class="editable" contenteditable="true">${item.cuenta}</td>
+                        <td><input type="number" class="saldo-deudor form-control" value="${item.saldoDeudor}" step="0.01"></td>
+                        <td><input type="number" class="saldo-acreedor form-control" value="${item.saldoAcreedor}" step="0.01"></td>
+                        <td><input type="number" class="ajuste-debe form-control" value="${item.ajusteDebe}" step="0.01"></td>
+                        <td><input type="number" class="ajuste-haber form-control" value="${item.ajusteHaber}" step="0.01"></td>
+                        <td class="saldo-ajustado-deudor">${formatCurrency(item.saldoAjustadoDeudor)}</td>
+                        <td class="saldo-ajustado-acreedor">${formatCurrency(item.saldoAjustadoAcreedor)}</td>
+                        <td><input type="number" class="egreso form-control" value="${item.egreso}" step="0.01"></td>
+                        <td><input type="number" class="ingreso form-control" value="${item.ingreso}" step="0.01"></td>
+                        <td><input type="number" class="activo form-control" value="${item.activo}" step="0.01"></td>
+                        <td><input type="number" class="pasivo form-control" value="${item.pasivo}" step="0.01"></td>
+                        <td class="no-print">
+                            <button class="btn btn-sm btn-danger" onclick="deleteRow(this)"><i class="fas fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+                tbody.insertAdjacentHTML('beforeend', rowHtml);
+            });
+
+            // Agregar fila de totales inicial
+            tbody.insertAdjacentHTML('beforeend', `
+                <tr class="total-row">
+                    <td colspan="2">Totales</td>
+                    <td class="saldo-deudor"></td>
+                    <td class="saldo-acreedor"></td>
+                    <td class="ajuste-debe"></td>
+                    <td class="ajuste-haber"></td>
+                    <td class="saldo-ajustado-deudor"></td>
+                    <td class="saldo-ajustado-acreedor"></td>
+                    <td class="egreso"></td>
+                    <td class="ingreso"></td>
+                    <td class="activo"></td>
+                    <td class="pasivo"></td>
+                    <td class="no-print"></td>
+                </tr>
+            `);
+
+            // Agregar fila de ganancia
+            const ganancia = (state.items.reduce((sum, item) => sum + item.ingreso, 0) - 
+                             state.items.reduce((sum, item) => sum + item.egreso, 0));
+            tbody.insertAdjacentHTML('beforeend', `
+                <tr class="ganancia-row">
+                    <td colspan="8">Ganancia de la Gestión</td>
+                    <td class="egreso">${formatCurrency(ganancia)}</td>
+                    <td></td>
+                    <td class="activo">${formatCurrency(ganancia)}</td>
+                    <td></td>
+                    <td class="no-print"></td>
+                </tr>
+            `);
+
+            // Agregar fila de totales finales
+            tbody.insertAdjacentHTML('beforeend', `
+                <tr class="final-total-row">
+                    <td colspan="8">Totales</td>
+                    <td class="egreso"></td>
+                    <td class="ingreso"></td>
+                    <td class="activo"></td>
+                    <td class="pasivo"></td>
+                    <td class="no-print"></td>
+                </tr>
+            `);
+
+            // Asignar eventos
+            document.querySelectorAll('.saldo-deudor, .saldo-acreedor, .ajuste-debe, .ajuste-haber, .egreso, .ingreso, .activo, .pasivo').forEach(input => {
+                input.addEventListener('input', () => validateInput(input));
+            });
+            document.querySelectorAll('.editable').forEach(elem => {
+                elem.addEventListener('blur', updateState);
+            });
+
+            calculateTotals();
+        }
+
+        // Agregar fila
+        function addRow() {
+            const newNro = Math.max(...state.items.map(item => item.nro), 0) + 1;
+            state.items.push({
+                nro: newNro,
+                cuenta: 'Nueva Cuenta',
+                saldoDeudor: 0.00,
+                saldoAcreedor: 0.00,
+                ajusteDebe: 0.00,
+                ajusteHaber: 0.00,
+                saldoAjustadoDeudor: 0.00,
+                saldoAjustadoAcreedor: 0.00,
+                egreso: 0.00,
+                ingreso: 0.00,
+                activo: 0.00,
+                pasivo: 0.00
+            });
+            renderTable();
+            saveToLocalStorage();
+        }
+
+        // Eliminar fila
+        function deleteRow(btn) {
+            const row = btn.closest('tr');
+            const index = Array.from(row.parentElement.querySelectorAll('tr:not(.total-row):not(.ganancia-row):not(.final-total-row)')).indexOf(row);
+            state.items.splice(index, 1);
+            state.items.forEach((item, i) => item.nro = i + 1); // Reenumerar
+            renderTable();
+            saveToLocalStorage();
+        }
+
+        // Actualizar estado
+        function updateState() {
+            state.empresa.nombre = document.getElementById('empresa-nombre').textContent;
+            state.empresa.representante = document.getElementById('empresa-representante').textContent;
+            state.empresa.nit = document.getElementById('empresa-nit').textContent;
+            state.empresa.direccion = document.getElementById('empresa-direccion').textContent;
+            state.empresa.telefono = document.getElementById('empresa-telefono').textContent;
+
+            state.items = Array.from(document.querySelectorAll('#worksheet-body tr:not(.total-row):not(.ganancia-row):not(.final-total-row)')).map(row => ({
+                nro: parseInt(row.querySelector('.editable:nth-child(1)').textContent) || 0,
+                cuenta: row.querySelector('.editable:nth-child(2)').textContent,
+                saldoDeudor: parseFloat(row.querySelector('.saldo-deudor').value) || 0,
+                saldoAcreedor: parseFloat(row.querySelector('.saldo-acreedor').value) || 0,
+                ajusteDebe: parseFloat(row.querySelector('.ajuste-debe').value) || 0,
+                ajusteHaber: parseFloat(row.querySelector('.ajuste-haber').value) || 0,
+                saldoAjustadoDeudor: parseFloat(row.querySelector('.saldo-ajustado-deudor').textContent.replace(/,/g, '')) || 0,
+                saldoAjustadoAcreedor: parseFloat(row.querySelector('.saldo-ajustado-acreedor').textContent.replace(/,/g, '')) || 0,
+                egreso: parseFloat(row.querySelector('.egreso').value) || 0,
+                ingreso: parseFloat(row.querySelector('.ingreso').value) || 0,
+                activo: parseFloat(row.querySelector('.activo').value) || 0,
+                pasivo: parseFloat(row.querySelector('.pasivo').value) || 0
+            }));
+
+            saveToLocalStorage();
+        }
+
+        // Guardar en localStorage
+        function saveToLocalStorage() {
+            localStorage.setItem('worksheetData', JSON.stringify(state));
+        }
+
+        // Cargar desde localStorage
+        function loadFromLocalStorage() {
+            const data = JSON.parse(localStorage.getItem('worksheetData'));
+            if (data) {
+                state.empresa = data.empresa;
+                state.items = data.items;
+                document.getElementById('empresa-nombre').textContent = state.empresa.nombre;
+                document.getElementById('empresa-representante').textContent = state.empresa.representante;
+                document.getElementById('empresa-nit').textContent = state.empresa.nit;
+                document.getElementById('empresa-direccion').textContent = state.empresa.direccion;
+                document.getElementById('empresa-telefono').textContent = state.empresa.telefono;
+            }
+            renderTable();
+        }
+
+        // Actualizar cabecera de impresión
+        function updatePrintHeader() {
+            document.getElementById('print-empresa-nombre').textContent = state.empresa.nombre;
+            document.getElementById('print-empresa-representante').textContent = state.empresa.representante;
+            document.getElementById('print-empresa-nit').textContent = state.empresa.nit;
+            document.getElementById('print-empresa-direccion').textContent = state.empresa.direccion;
+            document.getElementById('print-empresa-telefono').textContent = state.empresa.telefono;
+        }
+
+        // Imprimir
+        function printWorksheet() {
+            updatePrintHeader();
+            window.print();
+        }
+
+        // Exportar a PDF
+        function exportToPDF() {
+            const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+
+            doc.setFontSize(12);
+            doc.text(state.empresa.nombre, 148.5, 10, { align: 'center' });
+            doc.setFontSize(10);
+            doc.text(state.empresa.representante, 148.5, 16, { align: 'center' });
+            doc.text(state.empresa.nit, 148.5, 22, { align: 'center' });
+            doc.text(state.empresa.direccion, 148.5, 28, { align: 'center' });
+            doc.text(state.empresa.telefono, 148.5, 34, { align: 'center' });
+            doc.text('31 de Diciembre 2024', 148.5, 40, { align: 'center' });
+            doc.text('(Expresado en Bolivianos)', 148.5, 46, { align: 'center' });
+            doc.setLineWidth(0.2);
+            doc.line(20, 50, 277, 50);
+            doc.setFontSize(11);
+            doc.text('HOJA DE 10 COLUMNAS', 148.5, 56, { align: 'center' });
+            doc.line(20, 58, 277, 58);
+
+            doc.autoTable({
+                html: document.querySelector('.worksheet-table'),
+                startY: 62,
+                margin: { left: 20, right: 20 },
+                theme: 'grid',
+                styles: { fontSize: 7.5, cellPadding: 2, textColor: [0, 0, 0], lineWidth: 0.2, lineColor: [0, 0, 0] },
+                headStyles: { fillColor: [227, 242, 253], textColor: [0, 0, 0], fontStyle: 'bold' },
+                alternateRowStyles: { fillColor: [248, 249, 250] },
+                columnStyles: {
+                    0: { halign: 'left', cellWidth: 15 },
+                    1: { halign: 'left', cellWidth: 40 },
+                    2: { halign: 'right', cellWidth: 25 },
+                    3: { halign: 'right', cellWidth: 25 },
+                    4: { halign: 'right', cellWidth: 25 },
+                    5: { halign: 'right', cellWidth: 25 },
+                    6: { halign: 'right', cellWidth: 25 },
+                    7: { halign: 'right', cellWidth: 25 },
+                    8: { halign: 'right', cellWidth: 25 },
+                    9: { halign: 'right', cellWidth: 25 },
+                    10: { halign: 'right', cellWidth: 25 },
+                    11: { halign: 'right', cellWidth: 25 },
+                    12: { halign: 'right', cellWidth: 0 }
+                },
+                didParseCell: function (data) {
+                    if (data.row.section === 'body' && (data.row.raw.classList.contains('total-row') || 
+                        data.row.raw.classList.contains('ganancia-row') || 
+                        data.row.raw.classList.contains('final-total-row'))) {
+                        data.cell.styles.fillColor = [187, 222, 251];
+                    }
+                }
+            });
+
+            doc.setFontSize(8);
+            doc.text('Sistema de Contabilidad - Versión 1.0.0', 277, 200, { align: 'right' });
+            doc.save('Hoja_de_10_Columnas.pdf');
+        }
+
+        // Exportar a Excel
+        function exportToExcel() {
+            const wb = XLSX.utils.book_new();
+            const wsData = [
+                [state.empresa.nombre],
+                [state.empresa.representante],
+                [state.empresa.nit],
+                [state.empresa.direccion],
+                [state.empresa.telefono],
+                ['31 de Diciembre 2024'],
+                ['(Expresado en Bolivianos)'],
+                ['HOJA DE 10 COLUMNAS'],
+                [],
+                ['Nro', 'Cuentas', 'Saldos Deudor', 'Saldos Acreedor', 'Ajustes Debe', 'Ajustes Haber', 'Saldos Ajustados Deudor', 'Saldos Ajustados Acreedor', 'Estado de Resultados Egreso', 'Estado de Resultados Ingreso', 'Balance General Activo', 'Balance General Pasivo']
+            ];
+
+            state.items.forEach(item => {
+                wsData.push([
+                    item.nro,
+                    item.cuenta,
+                    item.saldoDeudor,
+                    item.saldoAcreedor,
+                    item.ajusteDebe,
+                    item.ajusteHaber,
+                    item.saldoAjustadoDeudor,
+                    item.saldoAjustadoAcreedor,
+                    item.egreso,
+                    item.ingreso,
+                    item.activo,
+                    item.pasivo
+                ]);
+            });
+
+            const ganancia = (state.items.reduce((sum, item) => sum + item.ingreso, 0) - 
+                             state.items.reduce((sum, item) => sum + item.egreso, 0));
+            wsData.push(['', 'Ganancia de la Gestión', '', '', '', '', '', '', ganancia, '', ganancia, '']);
+
+            const totals = [
+                '', 'Totales',
+                state.items.reduce((sum, item) => sum + item.saldoDeudor, 0),
+                state.items.reduce((sum, item) => sum + item.saldoAcreedor, 0),
+                state.items.reduce((sum, item) => sum + item.ajusteDebe, 0),
+                state.items.reduce((sum, item) => sum + item.ajusteHaber, 0),
+                state.items.reduce((sum, item) => sum + item.saldoAjustadoDeudor, 0),
+                state.items.reduce((sum, item) => sum + item.saldoAjustadoAcreedor, 0),
+                state.items.reduce((sum, item) => sum + item.egreso, 0) + ganancia,
+                state.items.reduce((sum, item) => sum + item.ingreso, 0),
+                state.items.reduce((sum, item) => sum + item.activo, 0) + ganancia,
+                state.items.reduce((sum, item) => sum + item.pasivo, 0)
+            ];
+            wsData.push(totals);
+
+            const ws = XLSX.utils.aoa_to_sheet(wsData);
+            XLSX.utils.book_append_sheet(wb, ws, 'Hoja_10_Columnas');
+            XLSX.writeFile(wb, 'Hoja_de_10_Columnas.xlsx');
+        }
+
+        // Importar desde Excel
+        document.getElementById('import-excel').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                const json = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+
+                state.empresa.nombre = json[0][0] || state.empresa.nombre;
+                state.empresa.representante = json[1][0] || state.empresa.representante;
+                state.empresa.nit = json[2][0] || state.empresa.nit;
+                state.empresa.direccion = json[3][0] || state.empresa.direccion;
+                state.empresa.telefono = json[4][0] || state.empresa.telefono;
+
+                document.getElementById('empresa-nombre').textContent = state.empresa.nombre;
+                document.getElementById('empresa-representante').textContent = state.empresa.representante;
+                document.getElementById('empresa-nit').textContent = state.empresa.nit;
+                document.getElementById('empresa-direccion').textContent = state.empresa.direccion;
+                document.getElementById('empresa-telefono').textContent = state.empresa.telefono;
+
+                state.items = [];
+                json.slice(10).forEach(row => {
+                    if (row[0] && row[1] && !row[1].includes('Totales') && !row[1].includes('Ganancia')) {
+                        state.items.push({
+                            nro: parseInt(row[0]) || 0,
+                            cuenta: row[1],
+                            saldoDeudor: parseFloat(row[2]) || 0,
+                            saldoAcreedor: parseFloat(row[3]) || 0,
+                            ajusteDebe: parseFloat(row[4]) || 0,
+                            ajusteHaber: parseFloat(row[5]) || 0,
+                            saldoAjustadoDeudor: parseFloat(row[6]) || 0,
+                            saldoAjustadoAcreedor: parseFloat(row[7]) || 0,
+                            egreso: parseFloat(row[8]) || 0,
+                            ingreso: parseFloat(row[9]) || 0,
+                            activo: parseFloat(row[10]) || 0,
+                            pasivo: parseFloat(row[11]) || 0
+                        });
+                    }
+                });
+
+                renderTable();
+                saveToLocalStorage();
+            };
+            reader.readAsArrayBuffer(file);
+        });
+
+        // Inicializar
+        document.addEventListener('DOMContentLoaded', () => {
+            renderMenu();
+            addRippleEffect();
+            document.querySelector('.menu-toggle').addEventListener('click', toggleSidebar);
+            document.querySelectorAll('.menu a').forEach(link => {
+                link.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        link.click();
+                    }
+                });
+            });
+
+            loadFromLocalStorage();
+            updatePrintHeader();
+        });
+    </script>
+</body>
+</html>
