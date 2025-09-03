@@ -1,0 +1,1377 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Contabilidad - Detalle de Activos Fijos</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #1a73e8;
+            --secondary-color: #34a853;
+            --text-color: #2c3e50;
+            --light-bg: #f8f9fa;
+            --menu-hover: #f5f7fa;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            --table-header-bg: #e3f2fd;
+            --table-row-alt: #f9fafb;
+            --bcss-accent: #e0f7fa;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        body {
+            background: var(--light-bg);
+            min-height: 100vh;
+            margin-left: 300px;
+            padding: 20px;
+            transition: margin-left var(--transition);
+        }
+
+        .side_bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 300px;
+            height: 100vh;
+            background: white;
+            padding: 20px 0;
+            box-shadow: var(--shadow);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            transition: transform var(--transition);
+        }
+
+        .side_bar .title {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            margin-bottom: 10px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .side_bar .title .logo {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--primary-color);
+            letter-spacing: 0.5px;
+            text-align: center;
+        }
+
+        .side_bar .menu {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0 15px;
+        }
+
+        .side_bar .menu::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .side_bar .menu::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 4px;
+        }
+
+        .side_bar .menu::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .side_bar ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .side_bar ul li {
+            margin: 5px 0;
+            position: relative;
+        }
+
+        .side_bar ul a {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--text-color);
+            text-decoration: none;
+            border-radius: 8px;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .side_bar ul a:hover {
+            background-color: var(--menu-hover);
+            color: var(--primary-color);
+            transform: translateX(5px);
+        }
+
+        .side_bar ul a.active {
+            background: linear-gradient(90deg, var(--primary-color), #60a5fa);
+            color: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .side_bar ul a.active i {
+            color: white;
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .side_bar ul i {
+            margin-right: 12px;
+            font-size: 16px;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            transition: var(--transition);
+        }
+
+        .side_bar ul li:nth-child(1) i { background-color: #4CAF50; color: white; }
+        .side_bar ul li:nth-child(2) i { background-color: #2196F3; color: white; }
+        .side_bar ul li:nth-child(3) i { background-color: #FF9800; color: white; }
+        .side_bar ul li:nth-child(4) i { background-color: #9C27B0; color: white; }
+        .side_bar ul li:nth-child(5) i { background-color: #607D8B; color: white; }
+        .side_bar ul li:nth-child(6) i { background-color: #F44336; color: white; }
+        .side_bar ul li:nth-child(7) i { background-color: #795548; color: white; }
+        .side_bar ul li:nth-child(8) i { background-color: #00BCD4; color: white; }
+        .side_bar ul li:nth-child(9) i { background-color: #8BC34A; color: white; }
+        .side_bar ul li:nth-child(10) i { background-color: #3F51B5; color: white; }
+        .side_bar ul li:nth-child(11) i { background-color: #009688; color: white; }
+        .side_bar ul li:nth-child(12) i { background-color: #E91E63; color: white; }
+        .side_bar ul li:nth-child(13) i { background-color: #CDDC39; color: #333; }
+        .side_bar ul li:nth-child(14) i { background-color: #FF5722; color: white; }
+        .side_bar ul li:nth-child(15) i { background-color: #673AB7; color: white; }
+        .side_bar ul li:nth-child(16) i { background-color: #333; color: white; }
+
+        .side_bar .footer {
+            padding: 15px;
+            text-align: center;
+            margin-top: auto;
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+            font-size: 0.85rem;
+            color: var(--text-color);
+        }
+
+        .ripple-effect {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.4);
+            transform: scale(0);
+            animation: ripple 0.6s linear;
+            pointer-events: none;
+        }
+
+        @keyframes ripple {
+            to {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+
+        .menu-toggle {
+            display: none;
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            z-index: 1100;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 20px;
+            cursor: pointer;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+
+        .menu-toggle:hover {
+            background: #1557b0;
+        }
+
+        @media (max-width: 992px) {
+            body {
+                margin-left: 0;
+            }
+
+            .side_bar {
+                transform: translateX(-100%);
+                width: 250px;
+            }
+
+            .side_bar.active {
+                transform: translateX(0);
+            }
+
+            body.menu-active {
+                margin-left: 250px;
+            }
+
+            .menu-toggle {
+                display: block;
+            }
+
+            .asset-table {
+                font-size: 0.8rem;
+            }
+        }
+
+        @media print {
+            @page {
+                size: A4 landscape;
+                margin: 10mm;
+            }
+
+            body {
+                margin: 0;
+                background: white;
+                font-size: 9pt;
+                padding: 0;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            .side_bar, .action-buttons, .no-print, .header, .menu-toggle {
+                display: none !important;
+            }
+
+            #print-header {
+                display: block;
+                text-align: center;
+                margin-bottom: 5mm;
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                padding: 5mm 10mm 0;
+                font-size: 10pt;
+            }
+
+            #print-header h4 {
+                font-size: 12pt;
+                font-weight: bold;
+                margin-bottom: 2mm;
+            }
+
+            #print-header p {
+                margin: 1mm 0;
+                font-size: 8pt;
+            }
+
+            #print-header .print-document-title {
+                font-size: 10pt;
+                font-weight: bold;
+                text-transform: uppercase;
+                margin: 3mm 0;
+                border-top: 0.5pt solid #000;
+                border-bottom: 0.5pt solid #000;
+                padding: 2mm 0;
+            }
+
+            .main-content, .asset-container {
+                padding: 0;
+                margin: 0;
+                max-width: 100%;
+                width: 100%;
+                box-shadow: none;
+                border-radius: 0;
+                overflow: visible;
+            }
+
+            .asset-table {
+                width: 100% !important;
+                font-size: 8pt;
+                border: 0.5pt solid #000;
+                border-collapse: collapse;
+                table-layout: fixed;
+            }
+
+            .asset-table th, .asset-table td {
+                border: 0.5pt solid #000;
+                padding: 2mm !important;
+                vertical-align: middle;
+                word-wrap: break-word;
+            }
+
+            .asset-table th {
+                background-color: #e0e0e0 !important;
+                font-weight: bold;
+                text-align: center;
+            }
+
+            .asset-table input {
+                border: none !important;
+                padding: 0 !important;
+                background: transparent !important;
+                text-align: inherit;
+                width: auto;
+                outline: none;
+                font-size: 8pt;
+                font-family: inherit;
+                color: inherit;
+            }
+
+            .asset-table input[type="number"] {
+                text-align: right;
+            }
+
+            .total-row {
+                background-color: #f0f0f0 !important;
+            }
+
+            .factor-section {
+                font-size: 8pt;
+                margin-bottom: 5mm;
+            }
+
+            .factor-section input {
+                border: none !important;
+                background: transparent !important;
+                text-align: right;
+            }
+        }
+
+        .main-content {
+            max-width: 1600px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .header {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            margin-bottom: 20px;
+        }
+
+        .company-info {
+            margin-bottom: 10px;
+            text-align: left;
+        }
+
+        .company-info h4 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--text-color);
+            margin-bottom: 5px;
+        }
+
+        .company-info p {
+            font-size: 0.9rem;
+            color: var(--text-color);
+            margin: 2px 0;
+        }
+
+        .document-title {
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin: 10px 0;
+            color: var(--text-color);
+            text-transform: uppercase;
+        }
+
+        .action-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            margin-bottom: 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: var(--light-bg);
+            padding: 10px;
+        }
+
+        .btn-action {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 8px 15px;
+            border-radius: 6px;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+
+        .asset-container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            padding: 15px;
+            margin: 0 auto;
+            margin-bottom: 20px;
+            overflow-x: auto;
+        }
+
+        .asset-table {
+            width: 100%;
+            max-width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+            table-layout: auto;
+        }
+
+        .asset-table th {
+            background-color: var(--table-header-bg);
+            text-align: center;
+            padding: 8px 6px;
+            border-bottom: 2px solid #bbdefb;
+            font-weight: 600;
+            font-size: 0.85rem;
+            white-space: nowrap;
+        }
+
+        .asset-table td {
+            padding: 8px 6px;
+            border-bottom: 1px solid #eee;
+            vertical-align: middle;
+            font-size: 0.85rem;
+            text-align: right;
+        }
+
+        .asset-table td:first-child {
+            text-align: left;
+            max-width: 300px;
+            white-space: normal;
+            word-wrap: break-word;
+        }
+
+        .asset-table input {
+            width: 100%;
+            border: 1px solid #ddd;
+            padding: 6px;
+            border-radius: 4px;
+            text-align: right;
+            font-size: 0.85rem;
+            background-color: #fdfdff;
+        }
+
+        .asset-table .calculated {
+            text-align: right;
+            padding: 6px;
+            font-weight: bold;
+        }
+
+        .total-row td {
+            font-weight: bold;
+            background-color: #e3f2fd;
+            border-top: 2px dashed #bbdefb;
+        }
+
+        .asset-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+
+        .factor-section {
+            background-color: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            margin-bottom: 20px;
+        }
+
+        .factor-section .form-control {
+            text-align: right;
+        }
+
+        .asset-table .porcentaje input {
+            text-align: center;
+            width: 60px;
+        }
+
+        .asset-table .no-print button {
+            padding: 6px;
+            font-size: 0.8rem;
+        }
+
+        .asset-table .no-print button:hover {
+            transform: scale(1.1);
+        }
+
+        .asset-table th:nth-child(1), .asset-table td:nth-child(1) { min-width: 300px; }
+        .asset-table th:nth-child(2), .asset-table td:nth-child(2) { min-width: 60px; }
+        .asset-table th:nth-child(3), .asset-table td:nth-child(3) { min-width: 120px; }
+        .asset-table th:nth-child(4), .asset-table td:nth-child(4) { min-width: 120px; }
+        .asset-table th:nth-child(5), .asset-table td:nth-child(5) { min-width: 80px; }
+        .asset-table th:nth-child(6), .asset-table td:nth-child(6) { min-width: 100px; }
+        .asset-table th:nth-child(7), .asset-table td:nth-child(7) { min-width: 120px; }
+        .asset-table th:nth-child(8), .asset-table td:nth-child(8) { min-width: 80px; }
+        .asset-table th:nth-child(9), .asset-table td:nth-child(9) { min-width: 120px; }
+        .asset-table th:nth-child(10), .asset-table td:nth-child(10) { min-width: 120px; }
+        .asset-table th:nth-child(11), .asset-table td:nth-child(11) { min-width: 120px; }
+        .asset-table th:nth-child(12), .asset-table td:nth-child(12) { min-width: 80px; }
+
+        @media (max-width: 768px) {
+            .asset-table th, .asset-table td {
+                padding: 6px 4px;
+                font-size: 0.75rem;
+            }
+
+            .asset-table input {
+                font-size: 0.75rem;
+                padding: 4px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="menu-toggle" aria-label="Toggle menu" title="Toggle menu">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <div class="side_bar">
+        <div class="title">
+            <div class="logo">Sistema de Contabilidad</div>
+        </div>
+        <div class="menu">
+            <ul id="menu-list"></ul>
+        </div>
+        <div class="footer">
+            <p>Versión 1.0.0</p>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="header">
+            <div class="company-info">
+                <h4 class="editable" contenteditable="true" id="empresa-nombre">Empresa: LOS TRAVIESOS</h4>
+                <p class="editable" contenteditable="true" id="empresa-representante">De: Sr. Juan Marcelo Martínez Mamani</p>
+                <p class="editable" contenteditable="true" id="empresa-nit">NIT: 568791012</p>
+                <p class="editable" contenteditable="true" id="empresa-direccion">Calle Marineros esquina Caballeros Nº 245</p>
+                <p class="editable" contenteditable="true" id="empresa-telefono">Telf.: 4571022 Punata</p>
+                <p class="editable" contenteditable="true" id="empresa-fecha">Por el ejercicio del 1 de enero de 2024 al 31 de diciembre de 2024 (Expresado en Bolivianos)</p>
+            </div>
+            <div class="document-title">DETALLE DE ACTIVOS FIJOS</div>
+        </div>
+
+        <div class="action-buttons">
+            <button class="btn btn-primary btn-action" onclick="addCategory()"><i class="fas fa-plus"></i> Agregar Categoría</button>
+
+            <button class="btn btn-danger btn-action" onclick="exportToPDF()"><i class="fas fa-file-pdf"></i> PDF</button>
+            <button class="btn btn-success btn-action" onclick="exportToExcel()"><i class="fas fa-file-excel"></i> Excel</button>
+        </div>
+        <input type="file" id="import-excel" style="display: none;" accept=".xlsx, .xls">
+
+        <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="confirmDeleteLabel">Confirmar Eliminación</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        ¿Estás seguro de que deseas eliminar este elemento?
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No</button>
+                        <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Sí</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="factor-section">
+            <div class="row">
+                <div class="col-md-3">
+                    <label>Fecha Final</label>
+                    <input type="text" class="form-control" id="fecha-final" value="31 12 2024">
+                </div>
+                <div class="col-md-3">
+                    <label>UFV Final</label>
+                    <input type="number" step="0.00001" class="form-control" id="ufv-final" value="2.57833">
+                </div>
+                <div class="col-md-3">
+                    <label>Fecha Inicial</label>
+                    <input type="text" class="form-control" id="fecha-inicial" value="01 01 2024">
+                </div>
+                <div class="col-md-3">
+                    <label>UFV Inicial</label>
+                    <input type="number" step="0.00001" class="form-control" id="ufv-inicial" value="2.47455">
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-md-6">
+                    <label>Factor</label>
+                    <input type="number" step="0.000000001" class="form-control calculated" id="factor" value="0.041938938" readonly>
+                </div>
+            </div>
+        </div>
+
+        <div id="assets-list">
+            <!-- Las categorías se generarán aquí dinámicamente -->
+        </div>
+
+        <div class="asset-container" id="grand-total-container">
+            <table class="asset-table">
+                <tr class="total-row">
+                    <td colspan="6">TOTAL GENERAL DE ACTIVOS FIJOS</td>
+                    <td class="calculated" id="total-valor-libros"></td>
+                    <td></td>
+                    <td class="calculated" id="total-actualizacion"></td>
+                    <td class="calculated" id="total-valor-actualizado"></td>
+                    <td class="calculated" id="total-depreciacion"></td>
+                    <td class="no-print"></td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const { jsPDF } = window.jspdf;
+
+        let itemToDelete = null;
+        let deleteType = null;
+
+        const menuItems = [
+            { label: '1. Balance de Apertura', href: '../1.Balance de Apertura/index.html', icon: 'fas fa-file-invoice-dollar' },
+            { label: '2. Libro Diario', href: '../2.libro diario/index.html', icon: 'fas fa-book-journal-whills' },
+            { label: '3. Cálculos Auxiliares Compras', href: '../3.Calculos Auxiliares Compras/index.html', icon: 'fas fa-calculator' },
+            { label: '4. Cálculos Auxiliares Ventas', href: '../4.CALCULOS AUXILIARES VENTAS/index.html', icon: 'fas fa-calculator' },
+            { label: '5. Otros Cálculos Auxiliares', href: '../5.Otros CALCULOS AUXILIARES/index.html', icon: 'fas fa-calculator' },
+            { label: '6. Liquidación Impuestos LM', href: '../6.LIQUIDACION IMPUESTOS LM/index.html', icon: 'fas fa-file-invoice' },
+            { label: '7. Kardex', href: '../7.Kardexs/index.html', icon: 'fas fa-boxes-stacked' },
+            { label: '8. Libro Mayor', href: '../8.Libro Mayor/index.html', icon: 'fas fa-book' },
+            { label: '9. BCSS', href: '../9.BCSS/index.html', icon: 'fas fa-balance-scale' },
+            { label: '10. Det. Act. Fijos', href: '../10.Detalle Activos Fijos/index.html', icon: 'fas fa-building-columns' },
+            { label: '11. Act. Patrimonio', href: '../11.patrimonio/index.html', icon: 'fas fa-landmark' },
+            { label: '12. Ajustes', href: '../12.Ajustes/index.html', icon: 'fas fa-sliders' },
+            { label: '13. Hoja de 10 Columnas', href: '../13.hoja/index.html', icon: 'fas fa-table' },
+            { label: '14. Estado de Resultados', href: '../14.ESTADO DE RESULTADOS/index.html', icon: 'fas fa-chart-line' },
+            { label: '15. Balance General', href: '../15.BALANCE GENERAL/index.html', icon: 'fas fa-chart-pie' },
+            { label: '16. Cerrar', href: '../../inicio/index.html', icon: 'fas fa-power-off' }
+        ];
+
+        const state = {
+            empresa: {
+                nombre: 'Empresa: LOS TRAVIESOS',
+                representante: 'De: Sr. Juan Marcelo Martínez Mamani',
+                nit: 'NIT: 568791012',
+                direccion: 'Calle Marineros esquina Caballeros Nº 245',
+                telefono: 'Telf.: 4571022 Punata',
+                fecha: 'Por el ejercicio del 1 de enero de 2024 al 31 de diciembre de 2024 (Expresado en Bolivianos)'
+            },
+            fecha_final: '31 12 2024',
+            ufv_final: 2.57833,
+            fecha_inicial: '01 01 2024',
+            ufv_inicial: 2.47455,
+            factor: 0.041938938,
+            categories: [
+                {
+                    name: 'Terrenos',
+                    rows: [
+                        {
+                            detalle: 'Lote de 800 mts 2- Zona Oeste en Calle Marineros esquina Caballeros Nº 245',
+                            cant: 1,
+                            costo: 300000.00,
+                            fecha: '01 01 2024',
+                            porcentaje: 0,
+                            vida: 0,
+                            valor_libros: 300000.00,
+                            actualizacion: 12581.68,
+                            valor_actualizado: 312581.68,
+                            depreciacion: 0.00
+                        }
+                    ]
+                },
+                {
+                    name: 'Equipos de Computación',
+                    rows: [
+                        {
+                            detalle: 'Computadora de escritorio HP',
+                            cant: 1,
+                            costo: 9000.00,
+                            fecha: '01 01 2024',
+                            porcentaje: 25,
+                            vida: 4,
+                            valor_libros: 9000.00,
+                            actualizacion: 377.45,
+                            valor_actualizado: 9377.45,
+                            depreciacion: 2344.36
+                        },
+                        {
+                            detalle: 'Impresora',
+                            cant: 2,
+                            costo: 990.00,
+                            fecha: '25 02 2024',
+                            porcentaje: 25,
+                            vida: 4,
+                            valor_libros: 1980.00,
+                            actualizacion: 83.04,
+                            valor_actualizado: 2063.04,
+                            depreciacion: 515.76
+                        },
+                        {
+                            detalle: 'Computadoras',
+                            cant: 2,
+                            costo: 4500.00,
+                            fecha: '19 05 2024',
+                            porcentaje: 25,
+                            vida: 4,
+                            valor_libros: 9000.00,
+                            actualizacion: 377.45,
+                            valor_actualizado: 9377.45,
+                            depreciacion: 2344.36
+                        }
+                    ]
+                },
+                {
+                    name: 'Motocicleta',
+                    rows: [
+                        {
+                            detalle: 'Motocicleta Marca Kimgp',
+                            cant: 1,
+                            costo: 9396.00,
+                            fecha: '19 03 2024',
+                            porcentaje: 20,
+                            vida: 5,
+                            valor_libros: 9396.00,
+                            actualizacion: 394.06,
+                            valor_actualizado: 9790.06,
+                            depreciacion: 1958.01
+                        }
+                    ]
+                }
+            ]
+        };
+
+        function debounce(func, wait) {
+            let timeout;
+            return function (...args) {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(this, args), wait);
+            };
+        }
+
+        const saveStateToLocalStorage = debounce(() => {
+            updateEmpresaInfo();
+            state.fecha_final = document.getElementById('fecha-final').value;
+            state.ufv_final = parseFloat(document.getElementById('ufv-final').value) || 0;
+            state.fecha_inicial = document.getElementById('fecha-inicial').value;
+            state.ufv_inicial = parseFloat(document.getElementById('ufv-inicial').value) || 0;
+            state.factor = state.ufv_inicial !== 0 ? (state.ufv_final / state.ufv_inicial - 1) : 0;
+            document.getElementById('factor').value = state.factor.toFixed(9);
+            state.categories = [];
+            document.querySelectorAll('.asset-container:not(#grand-total-container)').forEach(container => {
+                const name = container.querySelector('.asset-title').textContent;
+                const rows = [];
+                container.querySelectorAll('.item-row').forEach(row => {
+                    rows.push({
+                        detalle: row.querySelector('.detalle-input').textContent,
+                        cant: parseInt(row.querySelector('.cant-input').value) || 0,
+                        costo: parseFloat(row.querySelector('.costo-input').value) || 0,
+                        fecha: row.querySelector('.fecha-input').value,
+                        porcentaje: parseFloat(row.querySelector('.porcentaje-input').value) || 0,
+                        vida: parseInt(row.querySelector('.vida-input').value) || 0,
+                        valor_libros: parseFloat(row.querySelector('.valor-libros-input').value) || 0,
+                        actualizacion: parseFloat(row.querySelector('.actualizacion').textContent.replace(/,/g, '')) || 0,
+                        valor_actualizado: parseFloat(row.querySelector('.valor-actualizado').textContent.replace(/,/g, '')) || 0,
+                        depreciacion: parseFloat(row.querySelector('.depreciacion').textContent.replace(/,/g, '')) || 0
+                    });
+                });
+                state.categories.push({ name, rows });
+            });
+            localStorage.setItem('detalleActivosFijosState', JSON.stringify(state));
+        }, 300);
+
+        function loadStateFromLocalStorage() {
+            const savedState = localStorage.getItem('detalleActivosFijosState');
+            if (savedState) {
+                const parsedState = JSON.parse(savedState);
+                Object.assign(state.empresa, parsedState.empresa);
+                state.fecha_final = parsedState.fecha_final;
+                state.ufv_final = parsedState.ufv_final;
+                state.fecha_inicial = parsedState.fecha_inicial;
+                state.ufv_inicial = parsedState.ufv_inicial;
+                state.factor = parsedState.factor;
+                state.categories = parsedState.categories;
+
+                document.getElementById('empresa-nombre').textContent = state.empresa.nombre;
+                document.getElementById('empresa-representante').textContent = state.empresa.representante;
+                document.getElementById('empresa-nit').textContent = state.empresa.nit;
+                document.getElementById('empresa-direccion').textContent = state.empresa.direccion;
+                document.getElementById('empresa-telefono').textContent = state.empresa.telefono;
+                document.getElementById('empresa-fecha').textContent = state.empresa.fecha;
+
+                document.getElementById('fecha-final').value = state.fecha_final;
+                document.getElementById('ufv-final').value = state.ufv_final;
+                document.getElementById('fecha-inicial').value = state.fecha_inicial;
+                document.getElementById('ufv-inicial').value = state.ufv_inicial;
+                document.getElementById('factor').value = state.factor.toFixed(9);
+            }
+            rebuildCategories();
+            calculateAllCategories();
+        }
+
+        function rebuildCategories() {
+            const list = document.getElementById('assets-list');
+            list.innerHTML = '';
+            state.categories.forEach((category, index) => {
+                const container = document.createElement('div');
+                container.classList.add('asset-container');
+                container.setAttribute('data-category-index', index);
+                container.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="asset-title editable" contenteditable="true">${category.name}</div>
+                        <div>
+                            <button class="btn btn-sm btn-primary" onclick="addRowToCategory(${index})"><i class="fas fa-plus-circle"></i> Agregar Fila</button>
+                            <button class="btn btn-sm btn-danger no-print" onclick="deleteCategory(this)"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </div>
+                    <table class="asset-table">
+                        <thead>
+                            <tr>
+                                <th>Detalle</th>
+                                <th>Cant.</th>
+                                <th>Costo Unitario</th>
+                                <th>Fecha Adquisición</th>
+                                <th>%</th>
+                                <th>Vida Útil (Años)</th>
+                                <th>Valor en Libros</th>
+                                <th>Factor</th>
+                                <th>Actualización</th>
+                                <th>Valor Actualizado</th>
+                                <th>Depreciación</th>
+                                <th class="no-print">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${category.rows.map((row, rowIndex) => `
+                                <tr class="item-row">
+                                    <td class="detalle-input editable" contenteditable="true">${row.detalle}</td>
+                                    <td><input type="number" class="cant-input form-control" value="${row.cant}"></td>
+                                    <td><input type="number" step="0.01" class="costo-input form-control" value="${row.costo.toFixed(2)}"></td>
+                                    <td><input type="text" class="fecha-input form-control" value="${row.fecha}"></td>
+                                    <td><input type="number" class="porcentaje-input form-control" value="${row.porcentaje}"></td>
+                                    <td><input type="number" class="vida-input form-control" value="${row.vida}"></td>
+                                    <td><input type="number" step="0.01" class="valor-libros-input form-control" value="${row.valor_libros.toFixed(2)}" readonly></td>
+                                    <td class="calculated">${formatNumber(state.factor)}</td>
+                                    <td class="calculated actualizacion">${formatNumber(row.actualizacion)}</td>
+                                    <td class="calculated valor-actualizado">${formatNumber(row.valor_actualizado)}</td>
+                                    <td class="calculated depreciacion">${formatNumber(row.depreciacion)}</td>
+                                    <td class="no-print">
+                                        <button class="btn btn-sm btn-primary" onclick="addRowToCategory(${index})"><i class="fas fa-plus-circle"></i></button>
+                                        <button class="btn btn-sm btn-danger" onclick="deleteRow(this)"><i class="fas fa-trash"></i></button>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                            <tr class="total-row">
+                                <td colspan="6">TOTAL ${category.name.toUpperCase()}</td>
+                                <td class="calculated sum-valor-libros">${formatNumber(category.rows.reduce((sum, r) => sum + r.valor_libros, 0))}</td>
+                                <td></td>
+                                <td class="calculated sum-actualizacion">${formatNumber(category.rows.reduce((sum, r) => sum + r.actualizacion, 0))}</td>
+                                <td class="calculated sum-valor-actualizado">${formatNumber(category.rows.reduce((sum, r) => sum + r.valor_actualizado, 0))}</td>
+                                <td class="calculated sum-depreciacion">${formatNumber(category.rows.reduce((sum, r) => sum + r.depreciacion, 0))}</td>
+                                <td class="no-print"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                `;
+                list.appendChild(container);
+            });
+            setupEventListeners();
+            calculateAllCategories();
+        }
+
+        function calculateCategory(categoryIndex) {
+            const container = document.querySelector(`.asset-container[data-category-index="${categoryIndex}"]`);
+            if (!container) return;
+            const rows = container.querySelectorAll('.item-row');
+            let sumValorLibros = 0;
+            let sumActualizacion = 0;
+            let sumValorActualizado = 0;
+            let sumDepreciacion = 0;
+
+            rows.forEach(row => {
+                const cant = parseFloat(row.querySelector('.cant-input').value) || 0;
+                const costo = parseFloat(row.querySelector('.costo-input').value) || 0;
+                const valorLibros = cant * costo;
+                row.querySelector('.valor-libros-input').value = valorLibros.toFixed(2);
+                const actualizacion = valorLibros * state.factor;
+                const valorActualizado = valorLibros + actualizacion;
+                const porcentaje = parseFloat(row.querySelector('.porcentaje-input').value) || 0;
+                const fecha = row.querySelector('.fecha-input').value.trim();
+                let depreciacion = 0;
+
+                if (porcentaje > 0 && fecha) {
+                    const [day, month, year] = fecha.split(' ').map(Number);
+                    if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
+                        const acquisitionDate = new Date(year, month - 1, day);
+                        const finalDateParts = state.fecha_final.split(' ');
+                        const finalDate = new Date(finalDateParts[2], parseInt(finalDateParts[1]) - 1, finalDateParts[0]);
+                        const monthsDiff = (finalDate.getFullYear() - acquisitionDate.getFullYear()) * 12 + finalDate.getMonth() - acquisitionDate.getMonth();
+                        const annualDep = valorActualizado * (porcentaje / 100);
+                        depreciacion = annualDep * (monthsDiff / 12);
+                    }
+                }
+
+                row.querySelector('.actualizacion').textContent = formatNumber(actualizacion);
+                row.querySelector('.valor-actualizado').textContent = formatNumber(valorActualizado);
+                row.querySelector('.depreciacion').textContent = formatNumber(depreciacion);
+
+                sumValorLibros += valorLibros;
+                sumActualizacion += actualizacion;
+                sumValorActualizado += valorActualizado;
+                sumDepreciacion += depreciacion;
+
+                const rowIndex = Array.from(row.parentElement.children).indexOf(row);
+                if (state.categories[categoryIndex] && state.categories[categoryIndex].rows[rowIndex]) {
+                    state.categories[categoryIndex].rows[rowIndex].valor_libros = valorLibros;
+                    state.categories[categoryIndex].rows[rowIndex].actualizacion = actualizacion;
+                    state.categories[categoryIndex].rows[rowIndex].valor_actualizado = valorActualizado;
+                    state.categories[categoryIndex].rows[rowIndex].depreciacion = depreciacion;
+                }
+            });
+
+            container.querySelector('.sum-valor-libros').textContent = formatNumber(sumValorLibros);
+            container.querySelector('.sum-actualizacion').textContent = formatNumber(sumActualizacion);
+            container.querySelector('.sum-valor-actualizado').textContent = formatNumber(sumValorActualizado);
+            container.querySelector('.sum-depreciacion').textContent = formatNumber(sumDepreciacion);
+        }
+
+        function calculateAllCategories() {
+            state.categories.forEach((_, index) => calculateCategory(index));
+            calculateGrandTotals();
+        }
+
+        function calculateGrandTotals() {
+            let totalValorLibros = 0;
+            let totalActualizacion = 0;
+            let totalValorActualizado = 0;
+            let totalDepreciacion = 0;
+
+            document.querySelectorAll('.sum-valor-libros').forEach(el => totalValorLibros += parseFloat(el.textContent.replace(/,/g, '')) || 0);
+            document.querySelectorAll('.sum-actualizacion').forEach(el => totalActualizacion += parseFloat(el.textContent.replace(/,/g, '')) || 0);
+            document.querySelectorAll('.sum-valor-actualizado').forEach(el => totalValorActualizado += parseFloat(el.textContent.replace(/,/g, '')) || 0);
+            document.querySelectorAll('.sum-depreciacion').forEach(el => totalDepreciacion += parseFloat(el.textContent.replace(/,/g, '')) || 0);
+
+            document.getElementById('total-valor-libros').textContent = formatNumber(totalValorLibros);
+            document.getElementById('total-actualizacion').textContent = formatNumber(totalActualizacion);
+            document.getElementById('total-valor-actualizado').textContent = formatNumber(totalValorActualizado);
+            document.getElementById('total-depreciacion').textContent = formatNumber(totalDepreciacion);
+        }
+
+        function formatNumber(value) {
+            return Number(value).toLocaleString('es-BO', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        function updateEmpresaInfo() {
+            state.empresa.nombre = document.getElementById('empresa-nombre').textContent;
+            state.empresa.representante = document.getElementById('empresa-representante').textContent;
+            state.empresa.nit = document.getElementById('empresa-nit').textContent;
+            state.empresa.direccion = document.getElementById('empresa-direccion').textContent;
+            state.empresa.telefono = document.getElementById('empresa-telefono').textContent;
+            state.empresa.fecha = document.getElementById('empresa-fecha').textContent;
+        }
+
+        function calculateFactor() {
+            state.ufv_final = parseFloat(document.getElementById('ufv-final').value) || 0;
+            state.ufv_inicial = parseFloat(document.getElementById('ufv-inicial').value) || 0;
+            state.factor = state.ufv_inicial !== 0 ? (state.ufv_final / state.ufv_inicial - 1) : 0;
+            document.getElementById('factor').value = state.factor.toFixed(9);
+            calculateAllCategories();
+        }
+
+        function addCategory() {
+            state.categories.push({
+                name: 'Nueva Categoría',
+                rows: [{
+                    detalle: '',
+                    cant: 1,
+                    costo: 0.00,
+                    fecha: state.fecha_final,
+                    porcentaje: 0,
+                    vida: 0,
+                    valor_libros: 0.00,
+                    actualizacion: 0.00,
+                    valor_actualizado: 0.00,
+                    depreciacion: 0.00
+                }]
+            });
+            rebuildCategories();
+            saveStateToLocalStorage();
+        }
+
+        function addRowToCategory(index) {
+            state.categories[index].rows.push({
+                detalle: '',
+                cant: 1,
+                costo: 0.00,
+                fecha: state.fecha_final,
+                porcentaje: 0,
+                vida: 0,
+                valor_libros: 0.00,
+                actualizacion: 0.00,
+                valor_actualizado: 0.00,
+                depreciacion: 0.00
+            });
+            rebuildCategories();
+            saveStateToLocalStorage();
+        }
+
+        function deleteRow(btn) {
+            itemToDelete = btn.closest('tr');
+            deleteType = 'row';
+            const modal = new bootstrap.Modal(document.getElementById('confirmDeleteModal'));
+            modal.show();
+        }
+
+        function deleteCategory(btn) {
+            itemToDelete = btn.closest('.asset-container');
+            deleteType = 'category';
+            const modal = new bootstrap.Modal(document.getElementById('confirmDeleteModal'));
+            modal.show();
+        }
+
+        function exportToPDF() {
+            const doc = new jsPDF({ orientation: 'landscape' });
+            doc.setFontSize(16);
+            doc.text('DETALLE DE ACTIVOS FIJOS', 140, 15, { align: 'center' });
+            doc.setFontSize(12);
+            doc.text(state.empresa.fecha, 140, 25, { align: 'center' });
+            doc.setFontSize(10);
+            const { nombre, representante, nit, direccion, telefono } = state.empresa;
+            doc.text(nombre, 14, 35);
+            doc.text(representante, 14, 40);
+            doc.text(nit, 14, 45);
+            doc.text(direccion, 14, 50);
+            doc.text(telefono, 14, 55);
+
+            doc.text(`Factor: ${state.factor.toFixed(9)}`, 14, 60);
+            doc.text(`UFV Final: ${state.ufv_final} (${state.fecha_final})`, 14, 65);
+            doc.text(`UFV Inicial: ${state.ufv_inicial} (${state.fecha_inicial})`, 14, 70);
+
+            let y = 80;
+            state.categories.forEach(category => {
+                doc.setFontSize(12);
+                doc.text(category.name, 14, y);
+                y += 5;
+                doc.autoTable({
+                    startY: y,
+                    head: [['Detalle', 'Cant.', 'Costo Unit.', 'Fecha Adq.', '%', 'Vida Útil', 'Valor Libros', 'Factor', 'Actualiz.', 'Valor Act.', 'Deprec.']],
+                    body: [
+                        ...category.rows.map(row => [
+                            row.detalle,
+                            row.cant,
+                            formatNumber(row.costo),
+                            row.fecha,
+                            row.porcentaje,
+                            row.vida,
+                            formatNumber(row.valor_libros),
+                            formatNumber(state.factor),
+                            formatNumber(row.actualizacion),
+                            formatNumber(row.valor_actualizado),
+                            formatNumber(row.depreciacion)
+                        ]),
+                        ['TOTAL ' + category.name, '', '', '', '', '', formatNumber(category.rows.reduce((sum, r) => sum + r.valor_libros, 0)), '', formatNumber(category.rows.reduce((sum, r) => sum + r.actualizacion, 0)), formatNumber(category.rows.reduce((sum, r) => sum + r.valor_actualizado, 0)), formatNumber(category.rows.reduce((sum, r) => sum + r.depreciacion, 0))]
+                    ],
+                    theme: 'grid',
+                    headStyles: { fillColor: [200, 200, 200], fontSize: 8, halign: 'center' },
+                    columnStyles: {
+                        0: { cellWidth: 50 },
+                        1: { cellWidth: 15, halign: 'right' },
+                        2: { cellWidth: 25, halign: 'right' },
+                        3: { cellWidth: 25 },
+                        4: { cellWidth: 15, halign: 'right' },
+                        5: { cellWidth: 15, halign: 'right' },
+                        6: { cellWidth: 25, halign: 'right' },
+                        7: { cellWidth: 20, halign: 'right' },
+                        8: { cellWidth: 20, halign: 'right' },
+                        9: { cellWidth: 25, halign: 'right' },
+                        10: { cellWidth: 20, halign: 'right' }
+                    },
+                    margin: { left: 14, right: 14 },
+                    styles: { fontSize: 8, cellPadding: 1, overflow: 'linebreak', halign: 'left' },
+                    didParseCell: function(data) {
+                        if (data.row.section === 'body' && data.column.index > 0 && data.column.index !== 3) {
+                            data.cell.styles.halign = 'right';
+                        }
+                    }
+                });
+                y = doc.lastAutoTable.finalY + 10;
+                if (y > 180) {
+                    doc.addPage();
+                    y = 20;
+                }
+            });
+
+            doc.setFontSize(12);
+            doc.text('TOTAL GENERAL DE ACTIVOS FIJOS', 14, y);
+            y += 5;
+            doc.autoTable({
+                startY: y,
+                head: [['', '', '', '', '', '', 'Valor Libros', '', 'Actualiz.', 'Valor Act.', 'Deprec.']],
+                body: [
+                    ['', '', '', '', '', '', formatNumber(state.categories.reduce((sum, cat) => sum + cat.rows.reduce((s, r) => s + r.valor_libros, 0), 0)), '', formatNumber(state.categories.reduce((sum, cat) => sum + cat.rows.reduce((s, r) => s + r.actualizacion, 0), 0)), formatNumber(state.categories.reduce((sum, cat) => sum + cat.rows.reduce((s, r) => s + r.valor_actualizado, 0), 0)), formatNumber(state.categories.reduce((sum, cat) => sum + cat.rows.reduce((s, r) => s + r.depreciacion, 0), 0))]
+                ],
+                theme: 'grid',
+                headStyles: { fillColor: [200, 200, 200], fontSize: 8, halign: 'center' },
+                columnStyles: {
+                    0: { cellWidth: 50 },
+                    1: { cellWidth: 15, halign: 'right' },
+                    2: { cellWidth: 25, halign: 'right' },
+                    3: { cellWidth: 25 },
+                    4: { cellWidth: 15, halign: 'right' },
+                    5: { cellWidth: 15, halign: 'right' },
+                    6: { cellWidth: 25, halign: 'right' },
+                    7: { cellWidth: 20, halign: 'right' },
+                    8: { cellWidth: 20, halign: 'right' },
+                    9: { cellWidth: 25, halign: 'right' },
+                    10: { cellWidth: 20, halign: 'right' }
+                },
+                margin: { left: 14, right: 14 },
+                styles: { fontSize: 8, cellPadding: 1, overflow: 'linebreak', halign: 'right' }
+            });
+
+            doc.save('Detalle_Activos_Fijos.pdf');
+        }
+
+        function exportToExcel() {
+            const wb = XLSX.utils.book_new();
+            const data = [
+                [state.empresa.nombre],
+                [state.empresa.representante],
+                [state.empresa.nit],
+                [state.empresa.direccion],
+                [state.empresa.telefono],
+                [state.empresa.fecha],
+                [],
+                ['DETALLE DE ACTIVOS FIJOS'],
+                [],
+                ['Factor', state.factor.toFixed(9)],
+                ['UFV Final', state.ufv_final, state.fecha_final],
+                ['UFV Inicial', state.ufv_inicial, state.fecha_inicial],
+                []
+            ];
+
+            state.categories.forEach(category => {
+                data.push([category.name]);
+                data.push(['Detalle', 'Cant.', 'Costo Unit.', 'Fecha Adq.', '%', 'Vida Útil', 'Valor Libros', 'Factor', 'Actualiz.', 'Valor Act.', 'Deprec.']);
+                category.rows.forEach(row => {
+                    data.push([
+                        row.detalle,
+                        row.cant,
+                        row.costo,
+                        row.fecha,
+                        row.porcentaje,
+                        row.vida,
+                        row.valor_libros,
+                        state.factor,
+                        row.actualizacion,
+                        row.valor_actualizado,
+                        row.depreciacion
+                    ]);
+                });
+                data.push([
+                    'TOTAL ' + category.name,
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    category.rows.reduce((sum, r) => sum + r.valor_libros, 0),
+                    '',
+                    category.rows.reduce((sum, r) => sum + r.actualizacion, 0),
+                    category.rows.reduce((sum, r) => sum + r.valor_actualizado, 0),
+                    category.rows.reduce((sum, r) => sum + r.depreciacion, 0)
+                ]);
+                data.push([]);
+            });
+
+            data.push(['TOTAL GENERAL DE ACTIVOS FIJOS', '', '', '', '', '', state.categories.reduce((sum, cat) => sum + cat.rows.reduce((s, r) => s + r.valor_libros, 0), 0), '', state.categories.reduce((sum, cat) => sum + cat.rows.reduce((s, r) => s + r.actualizacion, 0), 0), state.categories.reduce((sum, cat) => sum + cat.rows.reduce((s, r) => s + r.valor_actualizado, 0), 0), state.categories.reduce((sum, cat) => sum + cat.rows.reduce((s, r) => s + r.depreciacion, 0), 0)]);
+
+            const ws = XLSX.utils.aoa_to_sheet(data);
+            XLSX.utils.book_append_sheet(wb, ws, "Activos Fijos");
+            XLSX.writeFile(wb, 'Detalle_Activos_Fijos.xlsx');
+        }
+
+        function importFromExcel() {
+            document.getElementById('import-excel').addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const json = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+
+                    state.empresa.nombre = json[0][0] || state.empresa.nombre;
+                    state.empresa.representante = json[1][0] || state.empresa.representante;
+                    state.empresa.nit = json[2][0] || state.empresa.nit;
+                    state.empresa.direccion = json[3][0] || state.empresa.direccion;
+                    state.empresa.telefono = json[4][0] || state.empresa.telefono;
+                    state.empresa.fecha = json[5][0] || state.empresa.fecha;
+
+                    document.getElementById('empresa-nombre').textContent = state.empresa.nombre;
+                    document.getElementById('empresa-representante').textContent = state.empresa.representante;
+                    document.getElementById('empresa-nit').textContent = state.empresa.nit;
+                    document.getElementById('empresa-direccion').textContent = state.empresa.direccion;
+                    document.getElementById('empresa-telefono').textContent = state.empresa.telefono;
+                    document.getElementById('empresa-fecha').textContent = state.empresa.fecha;
+
+                    state.fecha_final = json[10][2] || state.fecha_final;
+                    state.ufv_final = parseFloat(json[10][1]) || state.ufv_final;
+                    state.fecha_inicial = json[11][2] || state.fecha_inicial;
+                    state.ufv_inicial = parseFloat(json[11][1]) || state.ufv_inicial;
+                    state.factor = parseFloat(json[9][1]) || state.factor;
+
+                    document.getElementById('fecha-final').value = state.fecha_final;
+                    document.getElementById('ufv-final').value = state.ufv_final;
+                    document.getElementById('fecha-inicial').value = state.fecha_inicial;
+                    document.getElementById('ufv-inicial').value = state.ufv_inicial;
+                    document.getElementById('factor').value = state.factor.toFixed(9);
+
+                    state.categories = [];
+                    let currentCategory = null;
+                    json.slice(12).forEach(row => {
+                        if (row[0] && !row[0].startsWith('TOTAL') && row.length === 1) {
+                            currentCategory = { name: row[0], rows: [] };
+                            state.categories.push(currentCategory);
+                        } else if (row[0] && !row[0].startsWith('TOTAL') && currentCategory) {
+                            currentCategory.rows.push({
+                                detalle: row[0] || '',
+                                cant: parseInt(row[1]) || 0,
+                                costo: parseFloat(row[2]) || 0,
+                                fecha: row[3] || state.fecha_final,
+                                porcentaje: parseFloat(row[4]) || 0,
+                                vida: parseInt(row[5]) || 0,
+                                valor_libros: parseFloat(row[6]) || 0,
+                                actualizacion: parseFloat(row[8]) || 0,
+                                valor_actualizado: parseFloat(row[9]) || 0,
+                                depreciacion: parseFloat(row[10]) || 0
+                            });
+                        }
+                    });
+
+                    rebuildCategories();
+                    saveStateToLocalStorage();
+                };
+                reader.readAsArrayBuffer(file);
+            });
+        }
+
+        function setupEventListeners() {
+            document.querySelectorAll('input, .editable').forEach(el => {
+                el.removeEventListener('input', handleInput);
+            });
+
+            const debouncedUpdate = debounce(() => {
+                calculateAllCategories();
+                saveStateToLocalStorage();
+            }, 300);
+
+            function handleInput() {
+                debouncedUpdate();
+            }
+
+            document.querySelectorAll('input').forEach(input => {
+                input.addEventListener('input', handleInput);
+            });
+
+            document.querySelectorAll('.editable').forEach(cell => {
+                cell.addEventListener('input', handleInput);
+            });
+
+            document.getElementById('ufv-final').addEventListener('input', calculateFactor);
+            document.getElementById('ufv-inicial').addEventListener('input', calculateFactor);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderMenu();
+            addRippleEffect();
+            document.querySelector('.menu-toggle').addEventListener('click', toggleSidebar);
+            loadStateFromLocalStorage();
+            importFromExcel();
+
+            document.getElementById('confirmDeleteBtn').addEventListener('click', () => {
+                if (deleteType === 'row' && itemToDelete) {
+                    const container = itemToDelete.closest('.asset-container');
+                    const categoryIndex = parseInt(container.getAttribute('data-category-index'));
+                    const rowIndex = Array.from(container.querySelectorAll('.item-row')).indexOf(itemToDelete);
+                    if (state.categories[categoryIndex] && state.categories[categoryIndex].rows[rowIndex]) {
+                        state.categories[categoryIndex].rows.splice(rowIndex, 1);
+                        itemToDelete.remove();
+                        calculateCategory(categoryIndex);
+                        calculateGrandTotals();
+                        saveStateToLocalStorage();
+                    }
+                } else if (deleteType === 'category' && itemToDelete) {
+                    const categoryIndex = parseInt(itemToDelete.getAttribute('data-category-index'));
+                    if (state.categories[categoryIndex]) {
+                        state.categories.splice(categoryIndex, 1);
+                        itemToDelete.remove();
+                        rebuildCategories();
+                        calculateGrandTotals();
+                        saveStateToLocalStorage();
+                    }
+                }
+                itemToDelete = null;
+                deleteType = null;
+                const modal = bootstrap.Modal.getInstance(document.getElementById('confirmDeleteModal'));
+                modal.hide();
+            });
+        });
+
+        function renderMenu() {
+            const menuList = document.getElementById('menu-list');
+            const currentPath = window.location.pathname;
+            menuList.innerHTML = menuItems.map((item, index) => `
+                <li>
+                    <a href="${item.href}" class="ripple ${currentPath.includes(item.href) ? 'active' : ''}" title="${item.label}" role="menuitem">
+                        <i class="${item.icon}"></i>${item.label}
+                    </a>
+                </li>
+            `).join('');
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.side_bar');
+            const body = document.body;
+            sidebar.classList.toggle('active');
+            body.classList.toggle('menu-active');
+        }
+
+        function addRippleEffect() {
+            document.querySelectorAll('.ripple').forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const rect = this.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    const ripple = document.createElement('span');
+                    ripple.classList.add('ripple-effect');
+                    ripple.style.left = `${x}px`;
+                    ripple.style.top = `${y}px`;
+                    this.appendChild(ripple);
+                    setTimeout(() => {
+                        ripple.remove();
+                        window.location.href = this.href;
+                    }, 600);
+                });
+            });
+        }
+    </script>
+</body>
+</html>

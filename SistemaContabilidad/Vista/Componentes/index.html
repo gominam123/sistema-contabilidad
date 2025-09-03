@@ -1,0 +1,1343 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Contabilidad - Balance de Apertura</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <!-- jsPDF and XLSX -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #1a73e8;
+            --secondary-color: #34a853;
+            --text-color: #2c3e50;
+            --light-bg: #f8f9fa;
+            --menu-hover: #f5f7fa;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        body {
+            background: var(--light-bg);
+            min-height: 100vh;
+            margin-left: 300px;
+            padding: 20px;
+            transition: margin-left var(--transition);
+        }
+
+        .side_bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 300px;
+            height: 100vh;
+            background: white;
+            padding: 20px 0;
+            box-shadow: var(--shadow);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            transition: transform var(--transition);
+        }
+
+        .side_bar .title {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            margin-bottom: 10px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .side_bar .title .logo {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--primary-color);
+            letter-spacing: 0.5px;
+            text-align: center;
+        }
+
+        .side_bar .menu {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0 15px;
+        }
+
+        .side_bar .menu::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .side_bar .menu::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 4px;
+        }
+
+        .side_bar .menu::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .side_bar ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .side_bar ul li {
+            margin: 5px 0;
+            position: relative;
+        }
+
+        .side_bar ul a {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--text-color);
+            text-decoration: none;
+            border-radius: 8px;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .side_bar ul a:hover {
+            background-color: var(--menu-hover);
+            color: var(--primary-color);
+            transform: translateX(5px);
+        }
+
+        .side_bar ul a.active {
+            background: linear-gradient(90deg, var(--primary-color), #60a5fa);
+            color: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .side_bar ul a.active i {
+            color: white;
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .side_bar ul i {
+            margin-right: 12px;
+            font-size: 16px;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            transition: var(--transition);
+        }
+
+        .side_bar ul li:nth-child(1) i { background-color: #4CAF50; color: white; }
+        .side_bar ul li:nth-child(2) i { background-color: #2196F3; color: white; }
+        .side_bar ul li:nth-child(3) i { background-color: #FF9800; color: white; }
+        .side_bar ul li:nth-child(4) i { background-color: #9C27B0; color: white; }
+        .side_bar ul li:nth-child(5) i { background-color: #607D8B; color: white; }
+        .side_bar ul li:nth-child(6) i { background-color: #F44336; color: white; }
+        .side_bar ul li:nth-child(7) i { background-color: #795548; color: white; }
+        .side_bar ul li:nth-child(8) i { background-color: #00BCD4; color: white; }
+        .side_bar ul li:nth-child(9) i { background-color: #8BC34A; color: white; }
+        .side_bar ul li:nth-child(10) i { background-color: #3F51B5; color: white; }
+        .side_bar ul li:nth-child(11) i { background-color: #009688; color: white; }
+        .side_bar ul li:nth-child(12) i { background-color: #E91E63; color: white; }
+        .side_bar ul li:nth-child(13) i { background-color: #CDDC39; color: #333; }
+        .side_bar ul li:nth-child(14) i { background-color: #FF5722; color: white; }
+        .side_bar ul li:nth-child(15) i { background-color: #673AB7; color: white; }
+        .side_bar ul li:nth-child(16) i { background-color: #333; color: white; }
+
+        .side_bar .footer {
+            padding: 15px;
+            text-align: center;
+            margin-top: auto;
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+            font-size: 0.85rem;
+            color: var(--text-color);
+        }
+
+        .ripple-effect {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.4);
+            transform: scale(0);
+            animation: ripple 0.6s linear;
+            pointer-events: none;
+        }
+
+        @keyframes ripple {
+            to {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+
+        .menu-toggle {
+            display: none;
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            z-index: 1100;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 20px;
+            cursor: pointer;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+
+        .menu-toggle:hover {
+            background: #1557b0;
+        }
+
+        @media (max-width: 992px) {
+            body {
+                margin-left: 0;
+            }
+
+            .side_bar {
+                transform: translateX(-100%);
+                width: 250px;
+            }
+
+            .side_bar.active {
+                transform: translateX(0);
+            }
+
+            body.menu-active {
+                margin-left: 250px;
+            }
+
+            .menu-toggle {
+                display: block;
+            }
+        }
+
+        /* Estilos del contenido principal */
+        .main-content {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            margin-bottom: 20px;
+        }
+
+        .company-info {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+
+        .company-info h4 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-color);
+        }
+
+        .document-title {
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.25rem;
+            margin: 15px 0;
+            color: var(--text-color);
+            text-transform: uppercase;
+        }
+
+        .date-input {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .date-input label {
+            font-weight: 500;
+        }
+
+        .date-input input {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .balance-container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            padding: 20px;
+        }
+
+        .balance-section {
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-weight: bold;
+            font-size: 1.1rem;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 5px;
+            margin-bottom: 15px;
+            color: var(--primary-color);
+        }
+
+        .editable-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .editable-table th {
+            background-color: #f8f9fa;
+            text-align: left;
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+            font-weight: 600;
+        }
+
+        .editable-table td {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .editable-table input {
+            width: 100%;
+            border: 1px solid #ddd;
+            padding: 8px;
+            border-radius: 4px;
+            text-align: right;
+        }
+
+        .editable-table .editable {
+            padding: 8px;
+            border-radius: 4px;
+        }
+
+        .editable-table .editable:hover {
+            background-color: #f0f7ff;
+            outline: 1px dashed var(--primary-color);
+        }
+
+        .editable-table .editable:focus {
+            background-color: #fff;
+            outline: 1px solid var(--primary-color);
+        }
+
+        .total-row {
+            font-weight: bold;
+            background-color: #f8f9fa;
+        }
+
+        .action-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            margin-bottom: 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: var(--light-bg);
+            padding: 10px;
+        }
+
+        .btn-action {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 8px 15px;
+            border-radius: 6px;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+
+        .btn-action:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+
+        .btn-action i {
+            font-size: 14px;
+        }
+
+        @media print {
+            @page {
+                size: A4;
+                margin: 1cm;
+            }
+
+            body {
+                margin: 0;
+                background: white;
+                font-size: 10pt;
+                line-height: 1.2;
+            }
+
+            .side_bar, .action-buttons, .editable-table th:nth-child(3), .editable-table td:nth-child(3), .menu-toggle, .modal {
+                display: none;
+            }
+
+            .main-content {
+                padding: 0;
+                margin: 0;
+                max-width: 100%;
+            }
+
+            .header, .balance-container {
+                box-shadow: none;
+                border-radius: 0;
+                padding: 5mm;
+            }
+
+            .company-info {
+                text-align: left;
+                margin-bottom: 10mm;
+            }
+
+            .company-info h4 {
+                font-size: 12pt;
+                font-weight: 700;
+                margin-bottom: 2mm;
+            }
+
+            .company-info p {
+                margin-bottom: 1mm;
+                font-size: 9pt;
+            }
+
+            .document-title {
+                font-size: 14pt;
+                font-weight: 700;
+                margin: 5mm 0;
+                text-transform: uppercase;
+            }
+
+            .date-input {
+                text-align: center;
+                font-size: 9pt;
+                margin-bottom: 5mm;
+            }
+
+            .date-input label, .date-input input {
+                display: none;
+            }
+
+            .date-input span {
+                display: inline;
+            }
+
+            .editable-table {
+                border: 1px solid #000;
+                width: 100%;
+                font-size: 9pt;
+                margin-bottom: 5mm;
+            }
+
+            .editable-table th, .editable-table td {
+                border: 1px solid #000;
+                padding: 3mm 2mm;
+            }
+
+            .editable-table th {
+                background-color: #f0f0f0;
+                font-weight: 600;
+            }
+
+            .editable-table input, .editable-table .editable {
+                border: none;
+                padding: 0;
+                background: transparent;
+                text-align: right;
+                width: 100%;
+                outline: none;
+            }
+
+            .section-title {
+                font-size: 10pt;
+                font-weight: 600;
+                border-bottom: 2px solid #000;
+                margin-bottom: 3mm;
+                padding-bottom: 1mm;
+            }
+
+            .total-row td {
+                border-top: 2px solid #000;
+                font-weight: 700;
+            }
+
+            .balance-section {
+                margin-bottom: 5mm;
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Botón de toggle para móviles -->
+    <button class="menu-toggle" aria-label="Toggle menu" title="Toggle menu">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Menú lateral -->
+    <div class="side_bar">
+        <div class="title">
+            <div class="logo">Sistema de Contabilidad</div>
+        </div>
+        <div class="menu">
+            <ul id="menu-list"></ul>
+        </div>
+        <div class="footer">
+            <p>Versión 1.0.0</p>
+        </div>
+    </div>
+
+    <!-- Contenido principal -->
+    <div class="main-content">
+        <div class="header">
+            <div class="company-info">
+                <h4 class="editable" contenteditable="true" id="empresa-nombre">Empresa: LOS TRAVIESOS</h4>
+                <p class="editable" contenteditable="true" id="empresa-representante">De: Sr. Juan Marcelo Martínez Mamani</p>
+                <p class="editable" contenteditable="true" id="empresa-nit">NIT: 568791012</p>
+                <p class="editable" contenteditable="true" id="empresa-direccion">Calle Marineros esquina Caballeros Nº 245</p>
+                <p class="editable" contenteditable="true" id="empresa-telefono">Telf.: 4571022 Punata</p>
+                <p class="editable" contenteditable="true" id="empresa-fecha">AL 1 DE ENERO DE 2024 (Expresado en Bolivianos)</p>
+            </div>
+            <div class="document-title">1.BALANCE DE APERTURA</div>
+        </div>
+
+        <div class="action-buttons">
+            <button class="btn btn-primary btn-action" onclick="addRow('activo-circulante-table')"><i class="fas fa-plus"></i> Agregar Activo Circulante</button>
+            <button class="btn btn-primary btn-action" onclick="addRow('activo-no-circulante-table')"><i class="fas fa-plus"></i> Agregar Activo No Circulante</button>
+            <button class="btn btn-warning btn-action" onclick="addRow('pasivo-circulante-table')"><i class="fas fa-plus"></i> Agregar Pasivo Circulante</button>
+            <button class="btn btn-warning btn-action" onclick="addRow('pasivo-no-circulante-table')"><i class="fas fa-plus"></i> Agregar Pasivo No Circulante</button>
+            <button class="btn btn-success btn-action" onclick="addRow('patrimonio-table')"><i class="fas fa-plus"></i> Agregar Patrimonio</button>
+            <button class="btn btn-danger btn-action" onclick="exportToPDF()"><i class="fas fa-file-pdf"></i> PDF</button>
+            <button class="btn btn-success btn-action" onclick="exportToExcel()"><i class="fas fa-file-excel"></i> Excel</button>
+        </div>
+
+        <div class="balance-container">
+            <div class="balance-section">
+                <div class="section-title">+ ACTIVO CIRCULANTE</div>
+                <table class="editable-table table table-bordered" id="activo-circulante-table">
+                    <thead>
+                        <tr>
+                            <th width="70%">Cuenta</th>
+                            <th width="20%">Monto (Bs.)</th>
+                            <th width="10%" class="no-print"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="editable" contenteditable="true">Caja Moneda Nacional</td>
+                            <td><input type="number" step="0.01" class="amount-input form-control" value="990000.00"></td>
+                            <td class="no-print">
+                                <button class="btn btn-sm btn-primary" onclick="addRow('activo-circulante-table')"><i class="fas fa-plus"></i></button>
+                                <button class="btn btn-sm btn-danger" onclick="deleteRow(this, 'activo-circulante-table')"><i class="fas fa-trash"></i></button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="editable" contenteditable="true">Banco Moneda Nacional</td>
+                            <td><input type="number" step="0.01" class="amount-input form-control" value="220000.00"></td>
+                            <td class="no-print">
+                                <button class="btn btn-sm btn-primary" onclick="addRow('activo-circulante-table')"><i class="fas fa-plus"></i></button>
+                                <button class="btn btn-sm btn-danger" onclick="deleteRow(this, 'activo-circulante-table')"><i class="fas fa-trash"></i></button>
+                            </td>
+                        </tr>
+                        <tr class="total-row">
+                            <td>TOTAL ACTIVO CIRCULANTE</td>
+                            <td id="total-activo-circulante">Bs 1.210.000,00</td>
+                            <td class="no-print"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="balance-section">
+                <div class="section-title">+ ACTIVO NO CIRCULANTE</div>
+                <table class="editable-table table table-bordered" id="activo-no-circulante-table">
+                    <thead>
+                        <tr>
+                            <th width="70%">Cuenta</th>
+                            <th width="20%">Monto (Bs.)</th>
+                            <th width="10%" class="no-print"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="editable" contenteditable="true">Terrenos</td>
+                            <td><input type="number" step="0.01" class="amount-input form-control" value="300000.00"></td>
+                            <td class="no-print">
+                                <button class="btn btn-sm btn-primary" onclick="addRow('activo-no-circulante-table')"><i class="fas fa-plus"></i></button>
+                                <button class="btn btn-sm btn-danger" onclick="deleteRow(this, 'activo-no-circulante-table')"><i class="fas fa-trash"></i></button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="editable" contenteditable="true">Equipo de Computación</td>
+                            <td><input type="number" step="0.01" class="amount-input form-control" value="9000.00"></td>
+                            <td class="no-print">
+                                <button class="btn btn-sm btn-primary" onclick="addRow('activo-no-circulante-table')"><i class="fas fa-plus"></i></button>
+                                <button class="btn btn-sm btn-danger" onclick="deleteRow(this, 'activo-no-circulante-table')"><i class="fas fa-trash"></i></button>
+                            </td>
+                        </tr>
+                        <tr class="total-row">
+                            <td>TOTAL ACTIVO NO CIRCULANTE</td>
+                            <td id="total-activo-no-circulante">Bs 309.000,00</td>
+                            <td class="no-print"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="balance-section">
+                <div class="section-title">+ PASIVO CIRCULANTE</div>
+                <table class="editable-table table table-bordered" id="pasivo-circulante-table">
+                    <thead>
+                        <tr>
+                            <th width="70%">Cuenta</th>
+                            <th width="20%">Monto (Bs.)</th>
+                            <th width="10%" class="no-print"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="editable" contenteditable="true">Nueva Cuenta</td>
+                            <td><input type="number" step="0.01" class="amount-input form-control" value="0.00"></td>
+                            <td class="no-print">
+                                <button class="btn btn-sm btn-primary" onclick="addRow('pasivo-circulante-table')"><i class="fas fa-plus"></i></button>
+                                <button class="btn btn-sm btn-danger" onclick="deleteRow(this, 'pasivo-circulante-table')"><i class="fas fa-trash"></i></button>
+                            </td>
+                        </tr>
+                        <tr class="total-row">
+                            <td>TOTAL PASIVO CIRCULANTE</td>
+                            <td id="total-pasivo-circulante">Bs 0,00</td>
+                            <td class="no-print"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="balance-section">
+                <div class="section-title">+ PASIVO NO CIRCULANTE</div>
+                <table class="editable-table table table-bordered" id="pasivo-no-circulante-table">
+                    <thead>
+                        <tr>
+                            <th width="70%">Cuenta</th>
+                            <th width="20%">Monto (Bs.)</th>
+                            <th width="10%" class="no-print"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="editable" contenteditable="true">Nueva Cuenta</td>
+                            <td><input type="number" step="0.01" class="amount-input form-control" value="0.00"></td>
+                            <td class="no-print">
+                                <button class="btn btn-sm btn-primary" onclick="addRow('pasivo-no-circulante-table')"><i class="fas fa-plus"></i></button>
+                                <button class="btn btn-sm btn-danger" onclick="deleteRow(this, 'pasivo-no-circulante-table')"><i class="fas fa-trash"></i></button>
+                            </td>
+                        </tr>
+                        <tr class="total-row">
+                            <td>TOTAL PASIVO NO CIRCULANTE</td>
+                            <td id="total-pasivo-no-circulante">Bs 0,00</td>
+                            <td class="no-print"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="balance-section">
+                <div class="section-title">+ PATRIMONIO</div>
+                <table class="editable-table table table-bordered" id="patrimonio-table">
+                    <thead>
+                        <tr>
+                            <th width="70%">Cuenta</th>
+                            <th width="20%">Monto (Bs.)</th>
+                            <th width="10%" class="no-print"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="editable" contenteditable="true">Capital</td>
+                            <td><input type="number" step="0.01" class="amount-input form-control" value="1519000.00"></td>
+                            <td class="no-print">
+                                <button class="btn btn-sm btn-primary" onclick="addRow('patrimonio-table')"><i class="fas fa-plus"></i></button>
+                                <button class="btn btn-sm btn-danger" onclick="deleteRow(this, 'patrimonio-table')"><i class="fas fa-trash"></i></button>
+                            </td>
+                        </tr>
+                        <tr class="total-row">
+                            <td>TOTAL PATRIMONIO</td>
+                            <td id="total-patrimonio">Bs 1.519.000,00</td>
+                            <td class="no-print"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="balance-section">
+                <table class="editable-table table table-bordered">
+                    <tbody>
+                        <tr class="total-row">
+                            <td>TOTAL ACTIVO</td>
+                            <td id="total-activo">Bs 1.519.000,00</td>
+                            <td class="no-print"></td>
+                        </tr>
+                        <tr class="total-row">
+                            <td>TOTAL PASIVO Y PATRIMONIO</td>
+                            <td id="total-pasivo-patrimonio">Bs 1.519.000,00</td>
+                            <td class="no-print"></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="mt-3 text-center" id="balance-status"></div>
+            </div>
+
+            <!-- Modal de Confirmación de Eliminación -->
+            <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="confirmDeleteLabel">Confirmar Eliminación</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            ¿Estás seguro de que deseas eliminar este elemento?
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No</button>
+                            <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Sí</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Inicializar jsPDF
+        const { jsPDF } = window.jspdf;
+
+        // Menú dinámico
+        const menuItems = [
+            { label: '1. Balance de Apertura', href: '../1.Balance de Apertura/index.html', icon: 'fas fa-file-invoice-dollar' },
+            { label: '2. Libro Diario', href: '../2.libro diario/index.html', icon: 'fas fa-book-journal-whills' },
+            { label: '3. Cálculos Auxiliares Compras', href: '../3.Calculos Auxiliares Compras/index.html', icon: 'fas fa-calculator' },
+            { label: '4. Cálculos Auxiliares Ventas', href: '../4.CALCULOS AUXILIARES VENTAS/index.html', icon: 'fas fa-calculator' },
+            { label: '5. Otros Cálculos Auxiliares', href: '../5.Otros CALCULOS AUXILIARES/index.html', icon: 'fas fa-calculator' },
+            { label: '6. Liquidación Impuestos LM', href: '../6.LIQUIDACIÓN IMPUESTOS LM/index.html', icon: 'fas fa-file-invoice' },
+            { label: '7. Kardex', href: '../7.Kardexs/index.html', icon: 'fas fa-boxes-stacked' },
+            { label: '8. Libro Mayor', href: '../8.Libro Mayor/index.html', icon: 'fas fa-book' },
+            { label: '9. BCSS', href: '../9.BCSS/index.html', icon: 'fas fa-balance-scale' },
+            { label: '10. Act. Fijos', href: '../10.fijos/index.html', icon: 'fas fa-building-columns' },
+            { label: '11. Act. Patrimonio', href: '../11.patrimonio/index.html', icon: 'fas fa-landmark' },
+            { label: '12. Ajustes', href: '../12.Ajustes/index.html', icon: 'fas fa-sliders' },
+            { label: '13. Hoja de 10 Columnas', href: '../13.hoja/index.html', icon: 'fas fa-table' },
+            { label: '14. Estado de Resultados', href: '../14.ESTADO DE RESULTADOS/index.html', icon: 'fas fa-chart-line' },
+            { label: '15. Balance General', href: '../15.BALANCE GENERAL/index.html', icon: 'fas fa-chart-pie' },
+            { label: '16. Cerrar', href: '../../inicio/index.html', icon: 'fas fa-power-off' }
+        ];
+
+        // Estado inicial
+        const state = {
+            empresa: {
+                nombre: 'Empresa: LOS TRAVIESOS',
+                representante: 'De: Sr. Juan Marcelo Martínez Mamani',
+                nit: 'NIT: 568791012',
+                direccion: 'Calle Marineros esquina Caballeros Nº 245',
+                telefono: 'Telf.: 4571022 Punata',
+                fecha: 'AL 1 DE ENERO DE 2024 (Expresado en Bolivianos)'
+            },
+            balance: {
+                fecha: '2024-01-01',
+                activoCirculante: [
+                    { cuenta: 'Caja Moneda Nacional', monto: 990000.00 },
+                    { cuenta: 'Banco Moneda Nacional', monto: 220000.00 }
+                ],
+                activoNoCirculante: [
+                    { cuenta: 'Terrenos', monto: 300000.00 },
+                    { cuenta: 'Equipo de Computación', monto: 9000.00 }
+                ],
+                pasivoCirculante: [
+                    { cuenta: 'Nueva Cuenta', monto: 0.00 }
+                ],
+                pasivoNoCirculante: [
+                    { cuenta: 'Nueva Cuenta', monto: 0.00 }
+                ],
+                patrimonio: [
+                    { cuenta: 'Capital', monto: 1519000.00 }
+                ]
+            }
+        };
+
+        // Guardar estado en localStorage
+        function saveStateToLocalStorage() {
+            // Actualizar datos de las tablas desde el DOM
+            state.balance.activoCirculante = [];
+            document.querySelectorAll('#activo-circulante-table tbody tr:not(.total-row)').forEach(row => {
+                const cells = row.cells;
+                state.balance.activoCirculante.push({
+                    cuenta: cells[0].textContent,
+                    monto: parseFloat(cells[1].querySelector('input').value) || 0
+                });
+            });
+
+            state.balance.activoNoCirculante = [];
+            document.querySelectorAll('#activo-no-circulante-table tbody tr:not(.total-row)').forEach(row => {
+                const cells = row.cells;
+                state.balance.activoNoCirculante.push({
+                    cuenta: cells[0].textContent,
+                    monto: parseFloat(cells[1].querySelector('input').value) || 0
+                });
+            });
+
+            state.balance.pasivoCirculante = [];
+            document.querySelectorAll('#pasivo-circulante-table tbody tr:not(.total-row)').forEach(row => {
+                const cells = row.cells;
+                state.balance.pasivoCirculante.push({
+                    cuenta: cells[0].textContent,
+                    monto: parseFloat(cells[1].querySelector('input').value) || 0
+                });
+            });
+
+            state.balance.pasivoNoCirculante = [];
+            document.querySelectorAll('#pasivo-no-circulante-table tbody tr:not(.total-row)').forEach(row => {
+                const cells = row.cells;
+                state.balance.pasivoNoCirculante.push({
+                    cuenta: cells[0].textContent,
+                    monto: parseFloat(cells[1].querySelector('input').value) || 0
+                });
+            });
+
+            state.balance.patrimonio = [];
+            document.querySelectorAll('#patrimonio-table tbody tr:not(.total-row)').forEach(row => {
+                const cells = row.cells;
+                state.balance.patrimonio.push({
+                    cuenta: cells[0].textContent,
+                    monto: parseFloat(cells[1].querySelector('input').value) || 0
+                });
+            });
+
+            // Guardar en localStorage
+            localStorage.setItem('balanceAperturaState', JSON.stringify(state));
+        }
+
+        // Cargar estado desde localStorage
+        function loadStateFromLocalStorage() {
+            const savedState = localStorage.getItem('balanceAperturaState');
+            if (savedState) {
+                const parsedState = JSON.parse(savedState);
+                Object.assign(state.empresa, parsedState.empresa);
+                Object.assign(state.balance, parsedState.balance);
+
+                // Actualizar información de la empresa en el DOM
+                document.getElementById('empresa-nombre').textContent = state.empresa.nombre;
+                document.getElementById('empresa-representante').textContent = state.empresa.representante;
+                document.getElementById('empresa-nit').textContent = state.empresa.nit;
+                document.getElementById('empresa-direccion').textContent = state.empresa.direccion;
+                document.getElementById('empresa-telefono').textContent = state.empresa.telefono;
+                document.getElementById('empresa-fecha').textContent = state.empresa.fecha;
+
+                // Reconstruir tablas
+                rebuildTable('activo-circulante-table', state.balance.activoCirculante);
+                rebuildTable('activo-no-circulante-table', state.balance.activoNoCirculante);
+                rebuildTable('pasivo-circulante-table', state.balance.pasivoCirculante);
+                rebuildTable('pasivo-no-circulante-table', state.balance.pasivoNoCirculante);
+                rebuildTable('patrimonio-table', state.balance.patrimonio);
+            }
+            calculateTotals();
+        }
+
+        // Reconstruir tabla desde datos guardados
+        function rebuildTable(tableId, data) {
+            const table = document.getElementById(tableId).getElementsByTagName('tbody')[0];
+            // Eliminar todas las filas excepto la última (total)
+            while (table.rows.length > 1) {
+                table.deleteRow(0);
+            }
+            // Agregar filas desde los datos guardados
+            data.forEach(item => {
+                const newRow = table.insertRow(table.rows.length - 1);
+                newRow.innerHTML = `
+                    <td class="editable" contenteditable="true">${item.cuenta}</td>
+                    <td><input type="number" step="0.01" class="amount-input form-control" value="${item.monto.toFixed(2)}"></td>
+                    <td class="no-print">
+                        <button class="btn btn-sm btn-primary" onclick="addRow('${tableId}')"><i class="fas fa-plus"></i></button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteRow(this, '${tableId}')"><i class="fas fa-trash"></i></button>
+                    </td>
+                `;
+                newRow.querySelector('.amount-input').addEventListener('input', () => {
+                    calculateTotals();
+                    saveStateToLocalStorage();
+                });
+                newRow.querySelector('.editable').addEventListener('blur', () => {
+                    updateEmpresaInfo();
+                    saveStateToLocalStorage();
+                });
+            });
+        }
+
+        function renderMenu() {
+            const menuList = document.getElementById('menu-list');
+            const currentPath = window.location.pathname;
+            menuList.innerHTML = menuItems.map((item, index) => `
+                <li>
+                    <a href="${item.href}" class="ripple ${currentPath.includes(item.href) ? 'active' : ''}" title="${item.label}" role="menuitem">
+                        <i class="${item.icon}"></i>${item.label}
+                    </a>
+                </li>
+            `).join('');
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.side_bar');
+            const body = document.body;
+            sidebar.classList.toggle('active');
+            body.classList.toggle('menu-active');
+        }
+
+        function addRippleEffect() {
+            document.querySelectorAll('.ripple').forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const rect = this.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    const ripple = document.createElement('span');
+                    ripple.classList.add('ripple-effect');
+                    ripple.style.left = `${x}px`;
+                    ripple.style.top = `${y}px`;
+                    this.appendChild(ripple);
+                    setTimeout(() => {
+                        ripple.remove();
+                        window.location.href = this.href;
+                    }, 600);
+                });
+            });
+        }
+
+        // Formatear número
+        function formatCurrency(value) {
+            return `Bs ${Number(value || 0).toLocaleString('es-BO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        }
+
+        // Formatear fecha
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            const day = date.getDate().toString().padStart(2, '0');
+            const month = date.toLocaleString('es-BO', { month: 'long' }).toUpperCase();
+            const year = date.getFullYear();
+            return `${day} DE ${month} DE ${year}`;
+        }
+
+        // Actualizar fecha
+        function updateFecha(value) {
+            state.balance.fecha = value;
+            document.getElementById('empresa-fecha').textContent = `AL ${formatDate(value)} (Expresado en Bolivianos)`;
+            saveStateToLocalStorage();
+            calculateTotals();
+        }
+
+        // Calcular totales y verificar balance
+        function calculateTotals() {
+            let totalActivoCirculante = 0;
+            document.querySelectorAll('#activo-circulante-table .amount-input').forEach(input => {
+                const value = parseFloat(input.value) || 0;
+                totalActivoCirculante += value;
+            });
+            document.getElementById('total-activo-circulante').textContent = formatCurrency(totalActivoCirculante);
+
+            let totalActivoNoCirculante = 0;
+            document.querySelectorAll('#activo-no-circulante-table .amount-input').forEach(input => {
+                const value = parseFloat(input.value) || 0;
+                totalActivoNoCirculante += value;
+            });
+            document.getElementById('total-activo-no-circulante').textContent = formatCurrency(totalActivoNoCirculante);
+
+            let totalPasivoCirculante = 0;
+            document.querySelectorAll('#pasivo-circulante-table .amount-input').forEach(input => {
+                const value = parseFloat(input.value) || 0;
+                totalPasivoCirculante += value;
+            });
+            document.getElementById('total-pasivo-circulante').textContent = formatCurrency(totalPasivoCirculante);
+
+            let totalPasivoNoCirculante = 0;
+            document.querySelectorAll('#pasivo-no-circulante-table .amount-input').forEach(input => {
+                const value = parseFloat(input.value) || 0;
+                totalPasivoNoCirculante += value;
+            });
+            document.getElementById('total-pasivo-no-circulante').textContent = formatCurrency(totalPasivoNoCirculante);
+
+            let totalPatrimonio = 0;
+            document.querySelectorAll('#patrimonio-table .amount-input').forEach(input => {
+                const value = parseFloat(input.value) || 0;
+                totalPatrimonio += value;
+            });
+            document.getElementById('total-patrimonio').textContent = formatCurrency(totalPatrimonio);
+
+            const totalActivo = totalActivoCirculante + totalActivoNoCirculante;
+            document.getElementById('total-activo').textContent = formatCurrency(totalActivo);
+
+            const totalPasivo = totalPasivoCirculante + totalPasivoNoCirculante;
+            const totalPasivoPatrimonio = totalPasivo + totalPatrimonio;
+            document.getElementById('total-pasivo-patrimonio').textContent = formatCurrency(totalPasivoPatrimonio);
+
+            // Verificar balance con tolerancia
+            const difference = Math.abs(totalActivo - totalPasivoPatrimonio);
+            const isBalanced = difference < 0.1; // Tolerancia para errores de redondeo
+            const balanceStatus = document.getElementById('balance-status');
+            balanceStatus.innerHTML = isBalanced
+                ? '<p class="text-success fw-bold">✅ El balance está equilibrado correctamente</p>'
+                : `<p class="text-danger fw-bold">❌ Diferencia: ${formatCurrency(difference)}</p>`;
+        }
+
+        // Agregar nueva fila
+        function addRow(tableId) {
+            const table = document.getElementById(tableId).getElementsByTagName('tbody')[0];
+            const newRow = table.insertRow(table.rows.length - 1);
+            newRow.innerHTML = `
+                <td class="editable" contenteditable="true">Nueva Cuenta</td>
+                <td><input type="number" step="0.01" class="amount-input form-control" value="0.00"></td>
+                <td class="no-print">
+                    <button class="btn btn-sm btn-primary" onclick="addRow('${tableId}')"><i class="fas fa-plus"></i></button>
+                    <button class="btn btn-sm btn-danger" onclick="deleteRow(this, '${tableId}')"><i class="fas fa-trash"></i></button>
+                </td>
+            `;
+            newRow.querySelector('.amount-input').addEventListener('input', () => {
+                calculateTotals();
+                saveStateToLocalStorage();
+            });
+            newRow.querySelector('.editable').addEventListener('blur', () => {
+                updateEmpresaInfo();
+                saveStateToLocalStorage();
+            });
+            calculateTotals();
+            saveStateToLocalStorage();
+        }
+
+        // Variable para almacenar la fila a eliminar
+        let rowToDelete = null;
+        let tableIdToDelete = null;
+
+        // Eliminar fila con confirmación
+        function deleteRow(btn, tableId) {
+            rowToDelete = btn.parentNode.parentNode;
+            tableIdToDelete = tableId;
+            const modal = new bootstrap.Modal(document.getElementById('confirmDeleteModal'));
+            modal.show();
+        }
+
+        // Confirmar eliminación
+        document.getElementById('confirmDeleteBtn').addEventListener('click', () => {
+            if (rowToDelete && tableIdToDelete) {
+                const table = document.getElementById(tableIdToDelete).getElementsByTagName('tbody')[0];
+                if (table.rows.length > 1) { // Evitar eliminar la última fila antes del total
+                    rowToDelete.parentNode.removeChild(rowToDelete);
+                    calculateTotals();
+                    saveStateToLocalStorage();
+                } else {
+                    alert('No se puede eliminar la última fila.');
+                }
+                rowToDelete = null;
+                tableIdToDelete = null;
+            }
+            const modal = bootstrap.Modal.getInstance(document.getElementById('confirmDeleteModal'));
+            modal.hide();
+        });
+
+        // Imprimir balance
+        function printBalance() {
+            window.print();
+        }
+
+        // Exportar a PDF
+        function exportToPDF() {
+            const doc = new jsPDF();
+            doc.setFontSize(16);
+            doc.text('BALANCE DE APERTURA', 105, 15, { align: 'center' });
+            const date = state.balance.fecha;
+            const formattedDate = formatDate(date);
+            doc.setFontSize(12);
+            doc.text(`AL ${formattedDate} (Expresado en Bolivianos)`, 105, 25, { align: 'center' });
+            doc.setFontSize(10);
+            const { nombre, representante, nit, direccion, telefono } = state.empresa;
+            doc.text(nombre, 14, 35);
+            doc.text(representante, 14, 40);
+            doc.text(nit, 14, 45);
+            doc.text(direccion, 14, 50);
+            doc.text(telefono, 14, 55);
+
+            let y = 65;
+            doc.setFontSize(12);
+            doc.text('ACTIVO CIRCULANTE', 14, y);
+            y += 5;
+            doc.setFontSize(10);
+            doc.text('Cuenta', 14, y);
+            doc.text('Monto (Bs.)', 190, y, { align: 'right' });
+            y += 5;
+            doc.line(14, y, 190, y);
+            y += 10;
+
+            const activoCirculanteRows = document.querySelectorAll('#activo-circulante-table tbody tr:not(.total-row)');
+            activoCirculanteRows.forEach(row => {
+                const cells = row.cells;
+                doc.text(cells[0].textContent, 14, y);
+                doc.text(formatCurrency(cells[1].querySelector('input').value), 190, y, { align: 'right' });
+                y += 7;
+            });
+
+            y += 5;
+            doc.setFont('Roboto', 'bold');
+            doc.text('TOTAL ACTIVO CIRCULANTE', 14, y);
+            doc.text(document.getElementById('total-activo-circulante').textContent, 190, y, { align: 'right' });
+            doc.setFont('Roboto', 'normal');
+
+            y += 15;
+            doc.setFontSize(12);
+            doc.text('ACTIVO NO CIRCULANTE', 14, y);
+            y += 5;
+            doc.setFontSize(10);
+            doc.text('Cuenta', 14, y);
+            doc.text('Monto (Bs.)', 190, y, { align: 'right' });
+            y += 5;
+            doc.line(14, y, 190, y);
+            y += 10;
+
+            const activoNoCirculanteRows = document.querySelectorAll('#activo-no-circulante-table tbody tr:not(.total-row)');
+            activoNoCirculanteRows.forEach(row => {
+                const cells = row.cells;
+                doc.text(cells[0].textContent, 14, y);
+                doc.text(formatCurrency(cells[1].querySelector('input').value), 190, y, { align: 'right' });
+                y += 7;
+            });
+
+            y += 5;
+            doc.setFont('Roboto', 'bold');
+            doc.text('TOTAL ACTIVO NO CIRCULANTE', 14, y);
+            doc.text(document.getElementById('total-activo-no-circulante').textContent, 190, y, { align: 'right' });
+            doc.setFont('Roboto', 'normal');
+
+            y += 15;
+            doc.setFontSize(12);
+            doc.text('TOTAL ACTIVO', 14, y);
+            doc.text(document.getElementById('total-activo').textContent, 190, y, { align: 'right' });
+
+            y += 15;
+            doc.setFontSize(12);
+            doc.text('PASIVO CIRCULANTE', 14, y);
+            y += 5;
+            doc.setFontSize(10);
+            doc.text('Cuenta', 14, y);
+            doc.text('Monto (Bs.)', 190, y, { align: 'right' });
+            y += 5;
+            doc.line(14, y, 190, y);
+            y += 10;
+
+            const pasivoCirculanteRows = document.querySelectorAll('#pasivo-circulante-table tbody tr:not(.total-row)');
+            pasivoCirculanteRows.forEach(row => {
+                const cells = row.cells;
+                doc.text(cells[0].textContent, 14, y);
+                doc.text(formatCurrency(cells[1].querySelector('input').value), 190, y, { align: 'right' });
+                y += 7;
+            });
+
+            y += 5;
+            doc.setFont('Roboto', 'bold');
+            doc.text('TOTAL PASIVO CIRCULANTE', 14, y);
+            doc.text(document.getElementById('total-pasivo-circulante').textContent, 190, y, { align: 'right' });
+            doc.setFont('Roboto', 'normal');
+
+            y += 15;
+            doc.setFontSize(12);
+            doc.text('PASIVO NO CIRCULANTE', 14, y);
+            y += 5;
+            doc.setFontSize(10);
+            doc.text('Cuenta', 14, y);
+            doc.text('Monto (Bs.)', 190, y, { align: 'right' });
+            y += 5;
+            doc.line(14, y, 190, y);
+            y += 10;
+
+            const pasivoNoCirculanteRows = document.querySelectorAll('#pasivo-no-circulante-table tbody tr:not(.total-row)');
+            pasivoNoCirculanteRows.forEach(row => {
+                const cells = row.cells;
+                doc.text(cells[0].textContent, 14, y);
+                doc.text(formatCurrency(cells[1].querySelector('input').value), 190, y, { align: 'right' });
+                y += 7;
+            });
+
+            y += 5;
+            doc.setFont('Roboto', 'bold');
+            doc.text('TOTAL PASIVO NO CIRCULANTE', 14, y);
+            doc.text(document.getElementById('total-pasivo-no-circulante').textContent, 190, y, { align: 'right' });
+            doc.setFont('Roboto', 'normal');
+
+            y += 15;
+            doc.setFontSize(12);
+            doc.text('PATRIMONIO', 14, y);
+            y += 5;
+            doc.setFontSize(10);
+            doc.text('Cuenta', 14, y);
+            doc.text('Monto (Bs.)', 190, y, { align: 'right' });
+            y += 5;
+            doc.line(14, y, 190, y);
+            y += 10;
+
+            const patrimonioRows = document.querySelectorAll('#patrimonio-table tbody tr:not(.total-row)');
+            patrimonioRows.forEach(row => {
+                const cells = row.cells;
+                doc.text(cells[0].textContent, 14, y);
+                doc.text(formatCurrency(cells[1].querySelector('input').value), 190, y, { align: 'right' });
+                y += 7;
+            });
+
+            y += 5;
+            doc.setFont('Roboto', 'bold');
+            doc.text('TOTAL PATRIMONIO', 14, y);
+            doc.text(document.getElementById('total-patrimonio').textContent, 190, y, { align: 'right' });
+            doc.setFont('Roboto', 'normal');
+
+            y += 15;
+            doc.setFont('Roboto', 'bold');
+            doc.text('TOTAL PASIVO Y PATRIMONIO', 14, y);
+            doc.text(document.getElementById('total-pasivo-patrimonio').textContent, 190, y, { align: 'right' });
+
+            doc.save('Balance_Apertura.pdf');
+        }
+
+        // Exportar a Excel
+        function exportToExcel() {
+            const wb = XLSX.utils.book_new();
+            const data = [
+                [state.empresa.nombre],
+                [state.empresa.representante],
+                [state.empresa.nit],
+                [state.empresa.direccion],
+                [state.empresa.telefono],
+                [state.empresa.fecha],
+                [],
+                ['BALANCE DE APERTURA'],
+                [`AL ${formatDate(state.balance.fecha)} (Expresado en Bolivianos)`],
+                [],
+                ['ACTIVO CIRCULANTE', ''],
+                ['Cuenta', 'Monto (Bs.)']
+            ];
+
+            const activoCirculanteRows = document.querySelectorAll('#activo-circulante-table tbody tr:not(.total-row)');
+            activoCirculanteRows.forEach(row => {
+                const cells = row.cells;
+                data.push([cells[0].textContent, parseFloat(cells[1].querySelector('input').value)]);
+            });
+            data.push(['TOTAL ACTIVO CIRCULANTE', document.getElementById('total-activo-circulante').textContent]);
+
+            data.push([]);
+            data.push(['ACTIVO NO CIRCULANTE', '']);
+            data.push(['Cuenta', 'Monto (Bs.)']);
+            const activoNoCirculanteRows = document.querySelectorAll('#activo-no-circulante-table tbody tr:not(.total-row)');
+            activoNoCirculanteRows.forEach(row => {
+                const cells = row.cells;
+                data.push([cells[0].textContent, parseFloat(cells[1].querySelector('input').value)]);
+            });
+            data.push(['TOTAL ACTIVO NO CIRCULANTE', document.getElementById('total-activo-no-circulante').textContent]);
+
+            data.push([]);
+            data.push(['PASIVO CIRCULANTE', '']);
+            data.push(['Cuenta', 'Monto (Bs.)']);
+            const pasivoCirculanteRows = document.querySelectorAll('#pasivo-circulante-table tbody tr:not(.total-row)');
+            pasivoCirculanteRows.forEach(row => {
+                const cells = row.cells;
+                data.push([cells[0].textContent, parseFloat(cells[1].querySelector('input').value)]);
+            });
+            data.push(['TOTAL PASIVO CIRCULANTE', document.getElementById('total-pasivo-circulante').textContent]);
+
+            data.push([]);
+            data.push(['PASIVO NO CIRCULANTE', '']);
+            data.push(['Cuenta', 'Monto (Bs.)']);
+            const pasivoNoCirculanteRows = document.querySelectorAll('#pasivo-no-circulante-table tbody tr:not(.total-row)');
+            pasivoNoCirculanteRows.forEach(row => {
+                const cells = row.cells;
+                data.push([cells[0].textContent, parseFloat(cells[1].querySelector('input').value)]);
+            });
+            data.push(['TOTAL PASIVO NO CIRCULANTE', document.getElementById('total-pasivo-no-circulante').textContent]);
+
+            data.push([]);
+            data.push(['PATRIMONIO', '']);
+            data.push(['Cuenta', 'Monto (Bs.)']);
+            const patrimonioRows = document.querySelectorAll('#patrimonio-table tbody tr:not(.total-row)');
+            patrimonioRows.forEach(row => {
+                const cells = row.cells;
+                data.push([cells[0].textContent, parseFloat(cells[1].querySelector('input').value)]);
+            });
+            data.push(['TOTAL PATRIMONIO', document.getElementById('total-patrimonio').textContent]);
+
+            data.push([]);
+            data.push(['TOTAL PASIVO Y PATRIMONIO', document.getElementById('total-pasivo-patrimonio').textContent]);
+
+            const ws = XLSX.utils.aoa_to_sheet(data);
+            XLSX.utils.book_append_sheet(wb, ws, "Balance Apertura");
+            XLSX.writeFile(wb, 'Balance_Apertura.xlsx');
+        }
+
+        // Actualizar información de la empresa
+        function updateEmpresaInfo() {
+            state.empresa.nombre = document.getElementById('empresa-nombre').textContent;
+            state.empresa.representante = document.getElementById('empresa-representante').textContent;
+            state.empresa.nit = document.getElementById('empresa-nit').textContent;
+            state.empresa.direccion = document.getElementById('empresa-direccion').textContent;
+            state.empresa.telefono = document.getElementById('empresa-telefono').textContent;
+            state.empresa.fecha = document.getElementById('empresa-fecha').textContent;
+            saveStateToLocalStorage();
+        }
+
+        // Inicializar eventos
+        document.addEventListener('DOMContentLoaded', () => {
+            renderMenu();
+            addRippleEffect();
+            document.querySelector('.menu-toggle').addEventListener('click', toggleSidebar);
+            document.querySelectorAll('.menu a').forEach(link => {
+                link.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        link.click();
+                    }
+                });
+            });
+
+            // Cargar estado desde localStorage
+            loadStateFromLocalStorage();
+
+            // Inicializar eventos para inputs y celdas editables
+            document.querySelectorAll('.amount-input').forEach(input => {
+                input.addEventListener('input', () => {
+                    calculateTotals();
+                    saveStateToLocalStorage();
+                });
+            });
+            document.querySelectorAll('.editable').forEach(cell => {
+                cell.addEventListener('blur', () => {
+                    updateEmpresaInfo();
+                    saveStateToLocalStorage();
+                });
+            });
+        });
+    </script>
+</body>
+</html>

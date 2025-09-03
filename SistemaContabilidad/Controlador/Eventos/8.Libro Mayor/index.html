@@ -1,0 +1,1077 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Contabilidad - Libro Mayor</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #1a73e8;
+            --secondary-color: #34a853;
+            --text-color: #2c3e50;
+            --light-bg: #f8f9fa;
+            --menu-hover: #f5f7fa;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        body {
+            background: var(--light-bg);
+            min-height: 100vh;
+            margin-left: 300px;
+            padding: 20px;
+            transition: margin-left var(--transition);
+        }
+
+        .side_bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 300px;
+            height: 100vh;
+            background: white;
+            padding: 20px 0;
+            box-shadow: var(--shadow);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            transition: transform var(--transition);
+        }
+
+        .side_bar .title {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            margin-bottom: 10px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .side_bar .title .logo {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--primary-color);
+            letter-spacing: 0.5px;
+            text-align: center;
+        }
+
+        .side_bar .menu {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0 15px;
+        }
+
+        .side_bar .menu::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .side_bar .menu::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 4px;
+        }
+
+        .side_bar .menu::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .side_bar ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .side_bar ul li {
+            margin: 5px 0;
+            position: relative;
+        }
+
+        .side_bar ul a {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--text-color);
+            text-decoration: none;
+            border-radius: 8px;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .side_bar ul a:hover {
+            background-color: var(--menu-hover);
+            color: var(--primary-color);
+            transform: translateX(5px);
+        }
+
+        .side_bar ul a.active {
+            background: linear-gradient(90deg, var(--primary-color), #60a5fa);
+            color: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .side_bar ul a.active i {
+            color: white;
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .side_bar ul i {
+            margin-right: 12px;
+            font-size: 16px;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            transition: var(--transition);
+        }
+
+        .side_bar ul li:nth-child(1) i { background-color: #4CAF50; color: white; }
+        .side_bar ul li:nth-child(2) i { background-color: #2196F3; color: white; }
+        .side_bar ul li:nth-child(3) i { background-color: #FF9800; color: white; }
+        .side_bar ul li:nth-child(4) i { background-color: #9C27B0; color: white; }
+        .side_bar ul li:nth-child(5) i { background-color: #607D8B; color: white; }
+        .side_bar ul li:nth-child(6) i { background-color: #F44336; color: white; }
+        .side_bar ul li:nth-child(7) i { background-color: #795548; color: white; }
+        .side_bar ul li:nth-child(8) i { background-color: #00BCD4; color: white; }
+        .side_bar ul li:nth-child(9) i { background-color: #8BC34A; color: white; }
+        .side_bar ul li:nth-child(10) i { background-color: #3F51B5; color: white; }
+        .side_bar ul li:nth-child(11) i { background-color: #009688; color: white; }
+        .side_bar ul li:nth-child(12) i { background-color: #E91E63; color: white; }
+        .side_bar ul li:nth-child(13) i { background-color: #CDDC39; color: #333; }
+        .side_bar ul li:nth-child(14) i { background-color: #FF5722; color: white; }
+        .side_bar ul li:nth-child(15) i { background-color: #673AB7; color: white; }
+        .side_bar ul li:nth-child(16) i { background-color: #333; color: white; }
+
+        .side_bar .footer {
+            padding: 15px;
+            text-align: center;
+            margin-top: auto;
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+            font-size: 0.85rem;
+            color: var(--text-color);
+        }
+
+        .ripple-effect {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.4);
+            transform: scale(0);
+            animation: ripple 0.6s linear;
+            pointer-events: none;
+        }
+
+        @keyframes ripple {
+            to {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+
+        .menu-toggle {
+            display: none;
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            z-index: 1100;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 20px;
+            cursor: pointer;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+
+        .menu-toggle:hover {
+            background: #1557b0;
+        }
+
+        @media (max-width: 992px) {
+            body {
+                margin-left: 0;
+            }
+
+            .side_bar {
+                transform: translateX(-100%);
+                width: 250px;
+            }
+
+            .side_bar.active {
+                transform: translateX(0);
+            }
+
+            body.menu-active {
+                margin-left: 250px;
+            }
+
+            .menu-toggle {
+                display: block;
+            }
+
+            .ledger-table {
+                font-size: 0.8rem;
+            }
+        }
+
+        .main-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .header {
+            background-color: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            margin-bottom: 20px;
+        }
+
+        .company-info {
+            margin-bottom: 10px;
+            text-align: left;
+        }
+
+        .company-info h4 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--text-color);
+            margin-bottom: 5px;
+        }
+
+        .company-info p {
+            font-size: 0.9rem;
+            color: var(--text-color);
+            margin: 2px 0;
+        }
+
+        .document-title {
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin: 10px 0;
+            color: var(--text-color);
+            text-transform: uppercase;
+        }
+
+        .action-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            margin-bottom: 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: var(--light-bg);
+            padding: 10px;
+        }
+
+        .btn-action {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 8px 15px;
+            border-radius: 6px;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+
+        .ledger-container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            padding: 15px;
+            margin: 0 auto;
+            margin-bottom: 20px;
+            overflow-x: auto;
+        }
+
+        .ledger-table {
+            width: 100%;
+            max-width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+            table-layout: auto;
+        }
+
+        .ledger-table th {
+            background-color: #f8f9fa;
+            text-align: center;
+            padding: 8px 6px;
+            border-bottom: 2px solid #dee2e6;
+            font-weight: 600;
+            font-size: 0.85rem;
+            white-space: nowrap;
+        }
+
+        .ledger-table td {
+            padding: 8px 6px;
+            border-bottom: 1px solid #eee;
+            vertical-align: middle;
+            font-size: 0.85rem;
+        }
+
+        .ledger-table input {
+            width: 100%;
+            border: 1px solid #ddd;
+            padding: 6px;
+            border-radius: 4px;
+            text-align: right;
+            font-size: 0.85rem;
+            background-color: #fdfdff;
+        }
+
+        .ledger-table .calculated {
+            text-align: right;
+            padding: 6px;
+            font-weight: bold;
+        }
+
+        .total-row td {
+            font-weight: bold;
+            background-color: #f8f9fa;
+            border-top: 1px dashed #ccc;
+        }
+
+        .ledger-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+
+        .folio {
+            font-size: 0.9rem;
+            color: var(--text-color);
+            margin-bottom: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .ledger-table th, .ledger-table td {
+                padding: 6px 4px;
+                font-size: 0.75rem;
+            }
+
+            .ledger-table input {
+                font-size: 0.75rem;
+                padding: 4px;
+            }
+        }
+
+        @media print {
+            @page {
+                size: A4 portrait;
+                margin: 10mm;
+            }
+
+            body {
+                margin: 0;
+                background: white;
+                font-size: 9pt;
+                padding: 0;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            .side_bar, .action-buttons, .no-print, .header, .menu-toggle {
+                display: none !important;
+            }
+
+            #print-header {
+                display: block;
+                text-align: center;
+                margin-bottom: 5mm;
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                padding: 5mm 10mm 0;
+                font-size: 10pt;
+            }
+
+            #print-header h4 {
+                font-size: 12pt;
+                font-weight: bold;
+                margin-bottom: 2mm;
+            }
+
+            #print-header p {
+                margin: 1mm 0;
+                font-size: 8pt;
+            }
+
+            #print-header .print-document-title {
+                font-size: 10pt;
+                font-weight: bold;
+                text-transform: uppercase;
+                margin: 3mm 0;
+                border-top: 0.5pt solid #000;
+                border-bottom: 0.5pt solid #000;
+                padding: 2mm 0;
+            }
+
+            .main-content, .ledger-container {
+                padding: 0;
+                margin: 0;
+                max-width: 100%;
+                width: 100%;
+                box-shadow: none;
+                border-radius: 0;
+                overflow: visible;
+            }
+
+            .ledger-table {
+                width: 100% !important;
+                font-size: 8pt;
+                border: 0.5pt solid #000;
+                border-collapse: collapse;
+                table-layout: fixed;
+            }
+
+            .ledger-table th, .ledger-table td {
+                border: 0.5pt solid #000;
+                padding: 2mm !important;
+                vertical-align: middle;
+                word-wrap: break-word;
+            }
+
+            .ledger-table th {
+                background-color: #e0e0e0 !important;
+                font-weight: bold;
+                text-align: center;
+            }
+
+            .ledger-table input {
+                border: none !important;
+                padding: 0 !important;
+                background: transparent !important;
+                text-align: inherit;
+                width: auto;
+                outline: none;
+                font-size: 8pt;
+                font-family: inherit;
+                color: inherit;
+            }
+
+            .ledger-table input[type="number"] {
+                text-align: right;
+            }
+
+            .total-row {
+                background-color: #f0f0f0 !important;
+            }
+
+            .footer-print {
+                position: fixed;
+                bottom: 5mm;
+                right: 10mm;
+                font-size: 8pt;
+                color: #333;
+                display: block !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Botón de toggle para móviles -->
+    <button class="menu-toggle" aria-label="Toggle menu" title="Toggle menu">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Menú lateral -->
+    <div class="side_bar">
+        <div class="title">
+            <div class="logo">Sistema de Contabilidad</div>
+        </div>
+        <div class="menu">
+            <ul id="menu-list"></ul>
+        </div>
+        <div class="footer">
+            <p>Versión 1.0.0</p>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="header">
+            <div class="company-info">
+                <h4 class="editable" contenteditable="true" id="empresa-nombre">Empresa: LOS TRAVIESOS</h4>
+                <p class="editable" contenteditable="true" id="empresa-representante">De: Sr. Juan Marcelo Martínez Mamani</p>
+                <p class="editable" contenteditable="true" id="empresa-nit">NIT: 568791012</p>
+                <p class="editable" contenteditable="true" id="empresa-direccion">Calle Marineros esquina Caballeros Nº 245</p>
+                <p class="editable" contenteditable="true" id="empresa-telefono">Telf.: 4571022 Punata</p>
+                <p class="editable" contenteditable="true" id="empresa-fecha">AL 1 DE ENERO DE 2024 (Expresado en Bolivianos)</p>
+            </div>
+            <div class="document-title">8. LIBRO MAYOR</div>
+        </div>
+
+        <div class="action-buttons">
+            <button class="btn btn-primary btn-action" onclick="addAccount()"><i class="fas fa-plus"></i> Agregar Cuenta</button>
+            <button class="btn btn-primary btn-action" onclick="addRowToAccount('Caja Moneda Nacional')"><i class="fas fa-plus-circle"></i> Agregar Fila Caja</button>
+            <button class="btn btn-primary btn-action" onclick="addRowToAccount('Material de limpieza')"><i class="fas fa-plus-circle"></i> Agregar Fila Material</button>
+            <button class="btn btn-danger btn-action" onclick="exportToPDF()"><i class="fas fa-file-pdf"></i> PDF</button>
+            <button class="btn btn-success btn-action" onclick="exportToExcel()"><i class="fas fa-file-excel"></i> Excel</button>
+        </div>
+
+        <!-- Modal de Confirmación de Eliminación -->
+        <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="confirmDeleteLabel">Confirmar Eliminación</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        ¿Estás seguro de que deseas eliminar este elemento?
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No</button>
+                        <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Sí</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="ledger-list">
+            <!-- Los libros mayores se generarán aquí dinámicamente -->
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Inicializar jsPDF
+        const { jsPDF } = window.jspdf;
+
+        // Variables para eliminación
+        let itemToDelete = null;
+        let deleteType = null;
+
+        // Menú dinámico
+        const menuItems = [
+            { label: '1. Balance de Apertura', href: '../1.Balance de Apertura/index.html', icon: 'fas fa-file-invoice-dollar' },
+            { label: '2. Libro Diario', href: '../2.libro diario/index.html', icon: 'fas fa-book-journal-whills' },
+            { label: '3. Cálculos Auxiliares Compras', href: '../3.Calculos Auxiliares Compras/index.html', icon: 'fas fa-calculator' },
+            { label: '4. Cálculos Auxiliares Ventas', href: '../4.CALCULOS AUXILIARES VENTAS/index.html', icon: 'fas fa-calculator' },
+            { label: '5. Otros Cálculos Auxiliares', href: '../5.Otros CALCULOS AUXILIARES/index.html', icon: 'fas fa-calculator' },
+            { label: '6. Liquidación Impuestos LM', href: '../6.LIQUIDACIÓN IMPUESTOS LM/index.html', icon: 'fas fa-file-invoice' },
+            { label: '7. Kardex', href: '../7.Kardexs/index.html', icon: 'fas fa-boxes-stacked' },
+            { label: '8. Libro Mayor', href: '../8.Libro Mayor/index.html', icon: 'fas fa-book' },
+            { label: '9. BCSS', href: '../9.BCSS/index.html', icon: 'fas fa-balance-scale' },
+            { label: '10. Act. Fijos', href: '../10.fijos/index.html', icon: 'fas fa-building-columns' },
+            { label: '11. Act. Patrimonio', href: '../11.patrimonio/index.html', icon: 'fas fa-landmark' },
+            { label: '12. Ajustes', href: '../12.Ajustes/index.html', icon: 'fas fa-sliders' },
+            { label: '13. Hoja de 10 Columnas', href: '../13.hoja/index.html', icon: 'fas fa-table' },
+            { label: '14. Estado de Resultados', href: '../14.ESTADO DE RESULTADOS/index.html', icon: 'fas fa-chart-line' },
+            { label: '15. Balance General', href: '../15.BALANCE GENERAL/index.html', icon: 'fas fa-chart-pie' },
+            { label: '16. Cerrar', href: '../../inicio/index.html', icon: 'fas fa-power-off' }
+        ];
+
+        // Estado inicial
+        const state = {
+            empresa: {
+                nombre: 'Empresa: LOS TRAVIESOS',
+                representante: 'De: Sr. Juan Marcelo Martínez Mamani',
+                nit: 'NIT: 568791012',
+                direccion: 'Calle Marineros esquina Caballeros Nº 245',
+                telefono: 'Telf.: 4571022 Punata',
+                fecha: 'AL 1 DE ENERO DE 2024 (Expresado en Bolivianos)'
+            },
+            accounts: [
+                {
+                    name: 'Caja Moneda Nacional',
+                    folio: 1,
+                    rows: [
+                        { fecha: '01/01/2024', detalle: 'Por el registro de Balance de apertura', ad: 'AD-1', debe: 990000.00, haber: 0.00, saldo: 990000.00 },
+                        { fecha: '09/01/2024', detalle: 'Por la venta de mercaderías a la Sra. Blanca Rosas. Nos pagan el 50% en efectivo, y el saldo con cheque del Banco Unión Nº. 200 según factura 001.', ad: 'AD-3', debe: 23400.00, haber: 0.00, saldo: 1013400.00 },
+                        { fecha: '15/01/2024', detalle: 'Por el pago de un anticipo en efectivo de 18.800 Bs. al Sr. Juan Pérez (Radio Novedoso) por concepto de publicidad para 1.5 años según factura Nº 366.', ad: 'AD-4', debe: 0.00, haber: 18800.00, saldo: 994600.00 },
+                        { fecha: '15/01/2024', detalle: 'Por la venta de mercaderías a la Sra. Rosa Martínez Camacho. Nos pagan el 90% en efectivo, y el saldo con cheque del Banco Unión Nº. 250 según factura 002.', ad: 'AD-5', debe: 56700.00, haber: 0.00, saldo: 1051300.00 },
+                        { fecha: '23/01/2024', detalle: 'Por la venta de mercaderías a la Sra. Rosa Martínez Camacho. Nos pagan el 90% en efectivo, y el saldo con cheque del Banco Unión Nº. 250 según factura 003.', ad: 'AD-7', debe: 71280.00, haber: 0.00, saldo: 1122580.00 },
+                        { fecha: '26/01/2024', detalle: 'Por la compra de material de oficina por un total de Bs 680 según factura Nº 698', ad: 'AD-8', debe: 0.00, haber: 670.00, saldo: 1121910.00 },
+                        { fecha: '29/01/2024', detalle: 'Pago de servicios básicos ELFEC según factura Nº 890 del Elfec.', ad: 'AD-9', debe: 0.00, haber: 380.00, saldo: 1121530.00 },
+                        { fecha: '30/01/2024', detalle: 'Por la compra 5 aparatos telefónicos marca Panasonic cada uno a Bs. 650, según factura Nº 635, cancelado en efectivo.', ad: 'AD-10', debe: 0.00, haber: 3250.00, saldo: 1118280.00 },
+                        { fecha: '31/01/2024', detalle: 'Por el pago de Bs. 550 por concepto de Telefonía e Internet al Comteco según factura Nº 987.', ad: 'AD-11', debe: 0.00, haber: 550.00, saldo: 1117730.00 },
+                        { fecha: '09/02/2024', detalle: 'Por el pago en efectivo de 420 bs por concepto de consumo de energía eléctrica según factura Nº 250 del Elfec.', ad: 'AD-13', debe: 0.00, haber: 420.00, saldo: 1117310.00 },
+                        { fecha: '16/02/2024', detalle: 'Por la venta de mercaderías a la Sra. María del Carmen Tenorio de Ríos. Nos pagan el 40% en efectivo, y el saldo con cheque del Banco Unión Nº. 256 según factura 004', ad: 'AD-15', debe: 24640.00, haber: 0.00, saldo: 1141950.00 },
+                        { fecha: '20/02/2024', detalle: 'Pago de la deuda pendiente con el proveedor LG de la fecha 20/01/2024.', ad: 'AD-16', debe: 0.00, haber: 40000.00, saldo: 1101950.00 },
+                        { fecha: '23/02/2024', detalle: 'Por la venta mercaderías a la Sr. Marcelo Quiroga. Nos pagan en efectivo, según factura 005', ad: 'AD-17', debe: 102800.00, haber: 0.00, saldo: 1204750.00 },
+                        { fecha: '25/02/2024', detalle: 'Por la compra de 2 impresoras CANON c/u a Bs. 990.- según factura Nº 325. Cancelamos el 70% en efectivo con un descuento de 5% y el saldo a simple crédito.', ad: 'AD-18', debe: 0.00, haber: 1358.28, saldo: 1203391.72 },
+                        { fecha: '26/02/2024', detalle: 'Por la compra de Bs. 550 por concepto de Telefonía e Internet al Comteco según factura Nº 987', ad: 'AD-19', debe: 0.00, haber: 550.00, saldo: 1202841.72 },
+                        { fecha: '28/02/2024', detalle: 'Por la compra de un software de contabilidad por un total de Bs. 1500, según factura Nº 141. Cancelamos en efectivo.', ad: 'AD-20', debe: 0.00, haber: 1500.00, saldo: 1201341.72 },
+                        { fecha: '09/03/2024', detalle: 'Por el pago de Bs. 590 por concepto de Telefonía e Internet al Comteco según factura Nº 127.', ad: 'AD-22', debe: 0.00, haber: 590.00, saldo: 1200751.72 },
+                        { fecha: '14/03/2024', detalle: 'Por la compra de mercadería de la comercial LG, según factura 101, cancelándose al contado con un descuento de 2%', ad: 'AD-23', debe: 0.00, haber: 561050.00, saldo: 639701.72 },
+                        { fecha: '20/03/2024', detalle: 'Por la venta de mercaderías a la Sra. María Claros. Nos pagan en efectivo, según factura 006', ad: 'AD-24', debe: 58200.00, haber: 0.00, saldo: 697901.72 },
+                        { fecha: '19/03/2024', detalle: 'Por la compra de una motocicleta Marca Kingo por un total Bs. 10.800.- según factura Nº 123. Cancelamos en 70% en efectivo y el saldo con cheque Nº 49', ad: 'AD-25', debe: 0.00, haber: 7560.00, saldo: 690341.72 },
+                        { fecha: '20/03/2024', detalle: 'Por el pago en efectivo de 420 bs por concepto de consumo de energía eléctrica según factura Nº 290 del Elfec.', ad: 'AD-26', debe: 0.00, haber: 420.00, saldo: 689921.72 },
+                        { fecha: '23/03/2024', detalle: 'Por la compra de material de limpieza para la empresa por un total de Bs. 990, según factura Nº 236', ad: 'AD-27', debe: 0.00, haber: 990.00, saldo: 688931.72 },
+                        { fecha: '09/04/2024', detalle: 'Por el pago de Bs. 790 por concepto de Telefonía e Internet al Comteco según factura Nº 192.', ad: 'AD-29', debe: 0.00, haber: 790.00, saldo: 688141.72 },
+                        { fecha: '10/04/2024', detalle: 'Por el pago en efectivo de 620 bs por concepto de consumo de energía eléctrica según factura Nº 211 del Elfec.', ad: 'AD-30', debe: 0.00, haber: 620.00, saldo: 687521.72 },
+                        { fecha: '11/04/2024', detalle: 'Por la venta de mercaderías a la Sra. Marianela Camacho Torrico. Nos pagan en efectivo, según factura 007', ad: 'AD-31', debe: 181500.00, haber: 0.00, saldo: 869021.72 },
+                        { fecha: '10/05/2024', detalle: 'Por el pago de Bs. 890 por concepto de Telefonía e Internet al Comteco según factura Nº 123.', ad: 'AD-33', debe: 0.00, haber: 890.00, saldo: 868131.72 },
+                        { fecha: '20/05/2024', detalle: 'Por la venta de mercaderías a la Sra. María Claros. Nos pagan en efectivo, según factura 008.', ad: 'AD-34', debe: 96000.00, haber: 0.00, saldo: 964131.72 },
+                        { fecha: '19/05/2024', detalle: 'Por la compra 2 computadoras cada una a Bs. 4.500, según factura Nº 452', ad: 'AD-35', debe: 0.00, haber: 9000.00, saldo: 955131.72 },
+                        { fecha: '20/05/2024', detalle: 'Por el pago en efectivo de 290 bs por concepto de consumo de energía eléctrica según factura Nº 785 del Elfec.', ad: 'AD-36', debe: 0.00, haber: 290.00, saldo: 954841.72 },
+                        { fecha: '23/05/2024', detalle: 'Por la compra material de limpieza para la empresa por un total de Bs. 190, según factura Nº 211', ad: 'AD-37', debe: 0.00, haber: 190.00, saldo: 954651.72 },
+                        { fecha: '04/06/2024', detalle: 'Por el pago de Bs. 660 por concepto de Telefonía e Internet al Comteco según factura Nº 198', ad: 'AD-39', debe: 0.00, haber: 660.00, saldo: 953991.72 },
+                        { fecha: '20/06/2024', detalle: 'Por la venta de mercaderías a la Sra. Nelly Padilla. Nos pagan en efectivo, según factura 009.', ad: 'AD-40', debe: 88500.00, haber: 0.00, saldo: 1042491.72 },
+                        { fecha: '20/06/2024', detalle: 'Por el pago en efectivo de 470 bs por concepto de consumo de energía eléctrica según factura Nº 111 del Elfec.', ad: 'AD-41', debe: 0.00, haber: 470.00, saldo: 1042021.72 },
+                        { fecha: '09/07/2024', detalle: 'Por el pago de Bs. 860 por concepto de Telefonía e Internet al Comteco según factura Nº 798', ad: 'AD-43', debe: 0.00, haber: 860.00, saldo: 1041161.72 },
+                        { fecha: '20/07/2024', detalle: 'Por la venta de mercaderías a la Sra. Claudia Parra. Nos pagan en efectivo, según factura 010.', ad: 'AD-44', debe: 81000.00, haber: 0.00, saldo: 1122161.72 },
+                        { fecha: '20/07/2024', detalle: 'Por el pago en efectivo de 770 bs por concepto de consumo de energía eléctrica según factura Nº 119 del Elfec.', ad: 'AD-45', debe: 0.00, haber: 770.00, saldo: 1121391.72 },
+                        { fecha: '09/08/2024', detalle: 'Por el pago de Bs. 880 por concepto de Telefonía e Internet al Comteco según factura Nº 18.', ad: 'AD-47', debe: 0.00, haber: 880.00, saldo: 1120511.72 },
+                        { fecha: '20/08/2024', detalle: 'Por la venta de mercaderías a la Sra. Norma Cano. Nos pagan en efectivo, según factura 011', ad: 'AD-48', debe: 96000.00, haber: 0.00, saldo: 1216511.72 },
+                        { fecha: '20/08/2024', detalle: 'Por el pago en efectivo de 970 bs por concepto de consumo de energía eléctrica según factura Nº 129 del Elfec.', ad: 'AD-49', debe: 0.00, haber: 970.00, saldo: 1215541.72 },
+                        { fecha: '23/08/2024', detalle: 'Por la compra material de limpieza para la empresa por un total de Bs. 990, según factura Nº 201. Cancelamos en efectivo.', ad: 'AD-50', debe: 0.00, haber: 990.00, saldo: 1214551.72 }
+                    ],
+                    totals: { debe: 1870020.00, haber: 655468.28, saldo: 1214551.72 }
+                },
+                {
+                    name: 'Material de limpieza',
+                    folio: 2,
+                    rows: [
+                        { fecha: '23/03/2024', detalle: 'Por la compra de material de limpieza para la empresa por un total de Bs. 990, según factura Nº 236', ad: 'AD-27', debe: 861.30, haber: 0.00, saldo: 861.30 },
+                        { fecha: '23/05/2024', detalle: 'Por la compra material de limpieza para la empresa por un total de Bs. 190, según factura Nº 211', ad: 'AD-37', debe: 165.30, haber: 0.00, saldo: 1026.60 },
+                        { fecha: '23/08/2024', detalle: 'Por la compra material de limpieza para la empresa por un total de Bs. 990, según factura Nº 201. Cancelamos en efectivo.', ad: 'AD-50', debe: 861.30, haber: 0.00, saldo: 1887.90 }
+                    ],
+                    totals: { debe: 1887.90, haber: 0.00, saldo: 1887.90 }
+                }
+            ]
+        };
+
+        // Función de debounce
+        function debounce(func, wait) {
+            let timeout;
+            return function (...args) {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(this, args), wait);
+            };
+        }
+
+        // Guardar estado en localStorage
+        const saveStateToLocalStorage = debounce(() => {
+            updateEmpresaInfo();
+            state.accounts = [];
+            document.querySelectorAll('.ledger-container').forEach(container => {
+                const name = container.querySelector('.ledger-title').textContent;
+                const folio = parseInt(container.querySelector('.folio').textContent.replace('FOLIO: ', '')) || 0;
+                const rows = [];
+                container.querySelectorAll('.item-row').forEach(row => {
+                    rows.push({
+                        fecha: row.querySelector('.fecha-input').value,
+                        detalle: row.querySelector('.detalle-input').textContent,
+                        ad: row.querySelector('.ad-input').textContent,
+                        debe: parseFloat(row.querySelector('.debe-input').value) || 0,
+                        haber: parseFloat(row.querySelector('.haber-input').value) || 0,
+                        saldo: parseFloat(row.querySelector('.saldo').textContent.replace(/,/g, '')) || 0
+                    });
+                });
+                const totals = {
+                    debe: parseFloat(container.querySelector('.sum-debe').textContent.replace(/,/g, '')) || 0,
+                    haber: parseFloat(container.querySelector('.sum-haber').textContent.replace(/,/g, '')) || 0,
+                    saldo: parseFloat(container.querySelector('.sum-saldo').textContent.replace(/,/g, '')) || 0
+                };
+                state.accounts.push({ name, folio, rows, totals });
+            });
+            localStorage.setItem('ledgerState', JSON.stringify(state));
+        }, 300);
+
+        // Cargar estado desde localStorage
+        function loadStateFromLocalStorage() {
+            const savedState = localStorage.getItem('ledgerState');
+            if (savedState) {
+                const parsedState = JSON.parse(savedState);
+                Object.assign(state.empresa, parsedState.empresa);
+                state.accounts = parsedState.accounts;
+
+                document.getElementById('empresa-nombre').textContent = state.empresa.nombre;
+                document.getElementById('empresa-representante').textContent = state.empresa.representante;
+                document.getElementById('empresa-nit').textContent = state.empresa.nit;
+                document.getElementById('empresa-direccion').textContent = state.empresa.direccion;
+                document.getElementById('empresa-telefono').textContent = state.empresa.telefono;
+                document.getElementById('empresa-fecha').textContent = state.empresa.fecha;
+
+                rebuildAccounts();
+            } else {
+                rebuildAccounts();
+            }
+            calculateAllAccounts();
+        }
+
+        // Reconstruir cuentas
+        function rebuildAccounts() {
+            const list = document.getElementById('ledger-list');
+            list.innerHTML = '';
+            state.accounts.forEach((account, index) => {
+                const container = document.createElement('div');
+                container.classList.add('ledger-container');
+                container.innerHTML = `
+                    <div class="ledger-title editable" contenteditable="true">${account.name}</div>
+                    <div class="folio editable" contenteditable="true">FOLIO: ${account.folio}</div>
+                    <button class="btn btn-sm btn-danger no-print" onclick="deleteAccount(this)"><i class="fas fa-trash"></i></button>
+                    <table class="ledger-table table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>FECHA</th>
+                                <th>DETALLE</th>
+                                <th>AD</th>
+                                <th>DEBE</th>
+                                <th>HABER</th>
+                                <th>SALDO</th>
+                                <th class="no-print">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${account.rows.map(row => `
+                                <tr class="item-row">
+                                    <td><input type="text" class="fecha-input form-control" value="${row.fecha}"></td>
+                                    <td class="detalle-input editable" contenteditable="true">${row.detalle}</td>
+                                    <td class="ad-input editable" contenteditable="true">${row.ad}</td>
+                                    <td><input type="number" step="0.01" class="debe-input form-control" value="${row.debe.toFixed(2)}"></td>
+                                    <td><input type="number" step="0.01" class="haber-input form-control" value="${row.haber.toFixed(2)}"></td>
+                                    <td class="calculated saldo">${formatNumber(row.saldo)}</td>
+                                    <td class="no-print">
+                                        <button class="btn btn-sm btn-primary" onclick="addRowToSpecificAccount(${index})"><i class="fas fa-plus-circle"></i></button>
+                                        <button class="btn btn-sm btn-danger" onclick="deleteRow(this)"><i class="fas fa-trash"></i></button>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                            <tr class="total-row">
+                                <td colspan="3">TOTALES</td>
+                                <td class="calculated sum-debe">${formatNumber(account.totals.debe)}</td>
+                                <td class="calculated sum-haber">${formatNumber(account.totals.haber)}</td>
+                                <td class="calculated sum-saldo">${formatNumber(account.totals.saldo)}</td>
+                                <td class="no-print"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                `;
+                list.appendChild(container);
+            });
+            setupEventListeners();
+            calculateAllAccounts();
+        }
+
+        // Calcular cuenta
+        function calculateAccount(accountIndex) {
+            const account = state.accounts[accountIndex];
+            const container = document.querySelectorAll('.ledger-container')[accountIndex];
+            const rows = container.querySelectorAll('.item-row');
+            let saldo = 0;
+            let totalDebe = 0;
+            let totalHaber = 0;
+
+            rows.forEach(row => {
+                const debe = parseFloat(row.querySelector('.debe-input').value) || 0;
+                const haber = parseFloat(row.querySelector('.haber-input').value) || 0;
+                saldo += debe - haber;
+                totalDebe += debe;
+                totalHaber += haber;
+                row.querySelector('.saldo').textContent = formatNumber(saldo);
+            });
+
+            const totalRow = container.querySelector('.total-row');
+            totalRow.querySelector('.sum-debe').textContent = formatNumber(totalDebe);
+            totalRow.querySelector('.sum-haber').textContent = formatNumber(totalHaber);
+            totalRow.querySelector('.sum-saldo').textContent = formatNumber(saldo);
+
+            account.totals = { debe: totalDebe, haber: totalHaber, saldo };
+        }
+
+        // Calcular todas las cuentas
+        function calculateAllAccounts() {
+            state.accounts.forEach((_, index) => calculateAccount(index));
+        }
+
+        // Formatear número
+        function formatNumber(value) {
+            return Number(value).toLocaleString('es-BO', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        // Actualizar información de la empresa
+        function updateEmpresaInfo() {
+            state.empresa.nombre = document.getElementById('empresa-nombre').textContent;
+            state.empresa.representante = document.getElementById('empresa-representante').textContent;
+            state.empresa.nit = document.getElementById('empresa-nit').textContent;
+            state.empresa.direccion = document.getElementById('empresa-direccion').textContent;
+            state.empresa.telefono = document.getElementById('empresa-telefono').textContent;
+            state.empresa.fecha = document.getElementById('empresa-fecha').textContent;
+        }
+
+        // Agregar nueva cuenta
+        function addAccount() {
+            const newFolio = state.accounts.length + 1;
+            state.accounts.push({
+                name: `Cuenta ${newFolio}`,
+                folio: newFolio,
+                rows: [
+                    {
+                        fecha: new Date().toLocaleDateString('es-BO'),
+                        detalle: 'Nuevo Registro',
+                        ad: '',
+                        debe: 0.00,
+                        haber: 0.00,
+                        saldo: 0.00
+                    }
+                ],
+                totals: { debe: 0.00, haber: 0.00, saldo: 0.00 }
+            });
+            rebuildAccounts();
+            saveStateToLocalStorage();
+        }
+
+        // Agregar fila a cuenta específica
+        function addRowToAccount(accountName) {
+            const accountIndex = state.accounts.findIndex(a => a.name === accountName);
+            if (accountIndex >= 0) {
+                state.accounts[accountIndex].rows.push({
+                    fecha: new Date().toLocaleDateString('es-BO'),
+                    detalle: 'Nuevo Registro',
+                    ad: '',
+                    debe: 0.00,
+                    haber: 0.00,
+                    saldo: 0.00
+                });
+                rebuildAccounts();
+                saveStateToLocalStorage();
+            } else {
+                alert(`No se encontró la cuenta ${accountName}.`);
+            }
+        }
+
+        // Agregar fila a cuenta específica por índice
+        function addRowToSpecificAccount(index) {
+            state.accounts[index].rows.push({
+                fecha: new Date().toLocaleDateString('es-BO'),
+                detalle: 'Nuevo Registro',
+                ad: '',
+                debe: 0.00,
+                haber: 0.00,
+                saldo: 0.00
+            });
+            rebuildAccounts();
+            saveStateToLocalStorage();
+        }
+
+        // Eliminar fila
+        function deleteRow(btn) {
+            itemToDelete = btn.closest('tr');
+            deleteType = 'row';
+            const modal = new bootstrap.Modal(document.getElementById('confirmDeleteModal'));
+            modal.show();
+        }
+
+        // Eliminar cuenta
+        function deleteAccount(btn) {
+            itemToDelete = btn.closest('.ledger-container');
+            deleteType = 'account';
+            const modal = new bootstrap.Modal(document.getElementById('confirmDeleteModal'));
+            modal.show();
+        }
+
+        // Exportar a PDF
+        function exportToPDF() {
+            const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+            doc.setFontSize(16);
+            doc.text('LIBRO MAYOR', 105, 15, { align: 'center' });
+            doc.setFontSize(12);
+            doc.text(state.empresa.fecha, 105, 25, { align: 'center' });
+            doc.setFontSize(10);
+            const { nombre, representante, nit, direccion, telefono } = state.empresa;
+            doc.text(nombre, 14, 35);
+            doc.text(representante, 14, 40);
+            doc.text(nit, 14, 45);
+            doc.text(direccion, 14, 50);
+            doc.text(telefono, 14, 55);
+
+            let y = 65;
+            state.accounts.forEach(account => {
+                doc.setFontSize(12);
+                doc.text(account.name, 14, y);
+                doc.setFontSize(10);
+                doc.text(`FOLIO: ${account.folio}`, 14, y + 5);
+                y += 10;
+                doc.autoTable({
+                    startY: y,
+                    head: [['FECHA', 'DETALLE', 'AD', 'DEBE', 'HABER', 'SALDO']],
+                    body: [
+                        ...account.rows.map(row => [
+                            row.fecha,
+                            row.detalle,
+                            row.ad,
+                            formatNumber(row.debe),
+                            formatNumber(row.haber),
+                            formatNumber(row.saldo)
+                        ]),
+                        ['TOTALES', '', '', formatNumber(account.totals.debe), formatNumber(account.totals.haber), formatNumber(account.totals.saldo)]
+                    ],
+                    theme: 'grid',
+                    headStyles: { fillColor: [200, 200, 200], fontSize: 8, halign: 'center' },
+                    columnStyles: {
+                        0: { cellWidth: 20 },
+                        1: { cellWidth: 80 },
+                        2: { cellWidth: 15 },
+                        3: { cellWidth: 25 },
+                        4: { cellWidth: 25 },
+                        5: { cellWidth: 25 }
+                    },
+                    margin: { left: 14, right: 14 },
+                    styles: { fontSize: 8, cellPadding: 1, overflow: 'linebreak' }
+                });
+                y = doc.lastAutoTable.finalY + 10;
+            });
+
+            doc.save('Libro_Mayor.pdf');
+        }
+
+        // Exportar a Excel
+        function exportToExcel() {
+            const wb = XLSX.utils.book_new();
+            const data = [
+                [state.empresa.nombre],
+                [state.empresa.representante],
+                [state.empresa.nit],
+                [state.empresa.direccion],
+                [state.empresa.telefono],
+                [state.empresa.fecha],
+                [],
+                ['LIBRO MAYOR'],
+                []
+            ];
+
+            state.accounts.forEach(account => {
+                data.push([account.name]);
+                data.push([`FOLIO: ${account.folio}`]);
+                data.push(['FECHA', 'DETALLE', 'AD', 'DEBE', 'HABER', 'SALDO']);
+                account.rows.forEach(row => {
+                    data.push([
+                        row.fecha,
+                        row.detalle,
+                        row.ad,
+                        row.debe,
+                        row.haber,
+                        row.saldo
+                    ]);
+                });
+                data.push([
+                    'TOTALES',
+                    '',
+                    '',
+                    account.totals.debe,
+                    account.totals.haber,
+                    account.totals.saldo
+                ]);
+                data.push([]);
+            });
+
+            const ws = XLSX.utils.aoa_to_sheet(data);
+            XLSX.utils.book_append_sheet(wb, ws, "Libro Mayor");
+            XLSX.writeFile(wb, 'Libro_Mayor.xlsx');
+        }
+
+        // Configurar listeners para inputs
+        function setupEventListeners() {
+            document.querySelectorAll('input, .editable').forEach(el => {
+                el.removeEventListener('input', handleInput);
+                el.removeEventListener('blur', handleInput);
+            });
+
+            const debouncedUpdate = debounce(() => {
+                calculateAllAccounts();
+                saveStateToLocalStorage();
+            }, 300);
+
+            function handleInput() {
+                debouncedUpdate();
+            }
+
+            document.querySelectorAll('input').forEach(input => {
+                input.addEventListener('input', handleInput);
+            });
+
+            document.querySelectorAll('.editable').forEach(cell => {
+                cell.addEventListener('blur', handleInput);
+            });
+        }
+
+        // Inicializar eventos
+        document.addEventListener('DOMContentLoaded', () => {
+            renderMenu();
+            addRippleEffect();
+            document.querySelector('.menu-toggle').addEventListener('click', toggleSidebar);
+
+            loadStateFromLocalStorage();
+
+            document.getElementById('confirmDeleteBtn').addEventListener('click', () => {
+                if (deleteType === 'row' && itemToDelete) {
+                    itemToDelete.remove();
+                    calculateAllAccounts();
+                    saveStateToLocalStorage();
+                } else if (deleteType === 'account' && itemToDelete) {
+                    itemToDelete.remove();
+                    calculateAllAccounts();
+                    saveStateToLocalStorage();
+                }
+                itemToDelete = null;
+                deleteType = null;
+                const modal = bootstrap.Modal.getInstance(document.getElementById('confirmDeleteModal'));
+                modal.hide();
+            });
+        });
+
+        function renderMenu() {
+            const menuList = document.getElementById('menu-list');
+            const currentPath = window.location.pathname;
+            menuList.innerHTML = menuItems.map((item, index) => `
+                <li>
+                    <a href="${item.href}" class="ripple ${currentPath.includes(item.href) ? 'active' : ''}" title="${item.label}" role="menuitem">
+                        <i class="${item.icon}"></i>${item.label}
+                    </a>
+                </li>
+            `).join('');
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.side_bar');
+            const body = document.body;
+            sidebar.classList.toggle('active');
+            body.classList.toggle('menu-active');
+        }
+
+        function addRippleEffect() {
+            document.querySelectorAll('.ripple').forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const rect = this.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    const ripple = document.createElement('span');
+                    ripple.classList.add('ripple-effect');
+                    ripple.style.left = `${x}px`;
+                    ripple.style.top = `${y}px`;
+                    this.appendChild(ripple);
+                    setTimeout(() => {
+                        ripple.remove();
+                        window.location.href = this.href;
+                    }, 600);
+                });
+            });
+        }
+    </script>
+</body>
+</html>

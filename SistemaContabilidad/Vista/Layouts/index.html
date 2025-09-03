@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Contabilidad - Login</title>
+    <link rel="stylesheet" type="text/css" href="styles.css">
+    <style>
+        body {
+            background-color: black;
+            margin: 0;
+            font-family: 'Arial', sans-serif;
+        }
+        #video-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -1;
+            opacity: 0.7;
+        }
+        .login-container {
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 255, 255, 0.2);
+            max-width: 400px;
+            margin: 5% auto;
+        }
+        .error-message {
+            color: #ff4444;
+            text-align: center;
+            margin-bottom: 1rem;
+            font-weight: bold;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: #222;
+            padding: 20px;
+            border-radius: 8px;
+            max-width: 400px;
+            text-align: center;
+            color: #fff;
+            border: 1px solid #00ccff;
+        }
+        .modal-content p {
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+        }
+        .modal-content .emoji {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        .modal-content button {
+            background: linear-gradient(90deg, #00ccff, #3d5af1);
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .modal-content button:hover {
+            background: linear-gradient(90deg, #00b8e6, #2a48d6);
+        }
+    </style>
+</head>
+<body>
+    <video id="video-background" autoplay loop muted>
+        <source src="video6.mp4" type="video/mp4">
+        Tu navegador no soporta videos HTML5.
+    </video>
+
+    <div class="login-container">
+        <h3>SISTEMA DE CONTABILIDAD</h3>
+        
+        <form id="loginForm" method="post" autocomplete="off">
+            <label for="username">
+                <h4><img src="1.png" alt="Icono usuario"> Usuario:</h4>
+            </label>
+            <input type="text" id="username" name="txtusuario" placeholder="Usuario" required>
+            
+            <label for="password">
+                <h4><img src="2.png" alt="Icono contraseña"> Contraseña:</h4>
+            </label>
+            <input type="password" id="password" name="txtcontrasena" placeholder="Contraseña" required>
+            
+            <input type="submit" value="Iniciar Sesión">
+        </form>
+    </div>
+
+    <!-- Modal para errores -->
+    <div id="errorModal" class="modal">
+        <div class="modal-content">
+            <div class="emoji">😞</div>
+            <p id="errorMessage">Usuario o contraseña incorrectos</p>
+            <button onclick="closeModal('errorModal')">Aceptar</button>
+        </div>
+    </div>
+
+    <!-- Modal para éxito -->
+    <div id="successModal" class="modal">
+        <div class="modal-content">
+            <div class="emoji">😊</div>
+            <p id="successMessage">¡Inicio de sesión exitoso!</p>
+            <button onclick="redirectToDashboard()">Aceptar</button>
+        </div>
+    </div>
+
+    <script>
+        // Manejar el envío del formulario
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            // Credenciales válidas
+            const validUsername = 'Jairo';
+            const validPassword = '123';
+
+            if (username === validUsername && password === validPassword) {
+                showModal('successModal', '¡Inicio de sesión exitoso!');
+            } else {
+                showModal('errorModal', 'Usuario o contraseña incorrectos');
+            }
+        });
+
+        // Mostrar el modal
+        function showModal(modalId, message) {
+            const modal = document.getElementById(modalId);
+            const messageElement = modal.querySelector('p');
+            messageElement.textContent = message;
+            modal.style.display = 'flex';
+        }
+
+        // Cerrar el modal
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        // Redirigir al dashboard
+        function redirectToDashboard() {
+            window.location.href = '../menu/1.Balance de Apertura/index.html';
+        }
+    </script>
+</body>
+</html>
